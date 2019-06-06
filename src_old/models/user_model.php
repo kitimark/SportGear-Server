@@ -1,6 +1,6 @@
 <?php
 include_once('db.php');
-class user{
+class user extends db{
     public function getUserinfoBysid($user){
 
     }

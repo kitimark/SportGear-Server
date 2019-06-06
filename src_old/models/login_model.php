@@ -18,7 +18,6 @@ class login extends db{
         }catch(Exception $exception){
             return null;
         }
-
     }
     public function loginVerify($user,$password){
         try{
