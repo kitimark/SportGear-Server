@@ -14,6 +14,7 @@ $app->post('/user/login',function(Request $request,Response $response){
         $hash = $stmt->fetchAll();
         if(count($hash) > 0){
             if(password_verify($params['password'], $hash[0]['pwd'])){
+                //will return token here but not implement yet
                 return $this->response->withJson(array(
                     'message' => 'login complete! return id',
                     'id' => $hash[0]['id']
@@ -34,10 +35,26 @@ $app->post('/user/login',function(Request $request,Response $response){
 
 });
 
-//get info from id;
+//get info from id (will change to token later)
+$app->get('/user/{id}',function(Request $request,Response $response,$args){
+    try{
+        $sql = "SELECT * FROM account WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("id",$args['id']);
+        $stmt->execute();
+        $info = $stmt->fetchAll();
+        return $this->response->withJson($info);
+
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message); 
+    }
+    
+    
+});
+
 
 //add user for testing
-$app->post('/user/test/add',function($request,$response){
+$app->post('/user/test/add',function(Request $request,Response $response){
     $params = $request->getParsedBody();
     if(!empty($params['username'])){
         $hash = password_hash($params['username'], PASSWORD_DEFAULT);
