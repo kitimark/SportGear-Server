@@ -1,4 +1,5 @@
 <?php
+include 'fuc.php';
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 //user
@@ -48,10 +49,36 @@ $app->get('/user/{id}',function(Request $request,Response $response,$args){
     }catch(PDOException $e){
         $this->logger->addInfo($e->message); 
     }
-    
-    
 });
+//user update info by id (will change to token later)
+$app->patch('/user/img/{id}',function(Request $request,Response $response,$args){
+    $directory = $this->get('upload_directory');
 
+    $img = $request->getUploadedFiles();
+    // handle single input with single file upload
+    $uploadedFile = $uploadedFiles['img'];
+    if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
+        $filename = moveUploadedFile($directory, $uploadedFile);
+    }
+
+    try{
+        $sql = "UPDATE account SET img_url=:filename WHERE id=:id)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("id",$args['id']);
+        $stmt->bindParam("img_url",$args['filename']);
+        $stmt->execute();
+        return $this->response->withJson(array(
+            'message' => 'Updated Picture!',
+            'img_url' => $filename
+        ));
+
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message); 
+
+    }
+
+
+});
 
 //add user for testing
 $app->post('/user/test/add',function(Request $request,Response $response){
