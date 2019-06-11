@@ -8,8 +8,33 @@ CREATE TABLE sport(
     details JSON,
     CHECK (JSON_VALID(details))
 );
+CREATE TABLE sport_tour(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    fk_sport_id INT NOT NULL,
+    tour_round INT NOT NULL,
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
+);
+
+CREATE TABLE sport_team(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    team_name varchar(100),
+    fk_sport_id INT NOT NULL,
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
+    
+);
+
+CREATE TABLE sport_player(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    fk_sid varchar(13) NOT NULL,
+    fk_tour_id INT NOT NULL,
+    fk_team_id INT,
+    FOREIGN KEY (fk_sid) REFERENCES account(sid),
+    FOREIGN KEY (fk_tour_id) REFERENCES sport_tour(id),
+    FOREIGN KEY (fk_team_id) REFERENCES sport_team(id)
+
+);
 /*
-0 - null
+NULL - all
 1 - M
 2 - F
 */
