@@ -2,6 +2,7 @@ use gearsport;
 CREATE TABLE account(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     sid VARCHAR(13) NOT NULL,
+    uni VARCHAR(7) NOT NULL,
     fname VARCHAR(128) NOT NULL,
     lname VARCHAR(128) NOT NULL,
     email VARCHAR(256) NOT NULL,
@@ -9,5 +10,5 @@ CREATE TABLE account(
     img_url text,
     details JSON,
     CHECK (JSON_VALID(details)),
-    CONSTRAINT sid_email_unique UNIQUE (sid,email)
+    UNIQUE KEY (sid,email)
 );
