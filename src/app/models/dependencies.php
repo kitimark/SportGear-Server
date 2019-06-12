@@ -27,3 +27,8 @@ $container['db'] = function ($c) {
 
 // Uploaded Files
 $container['upload_directory'] = __DIR__ . '/uploads';
+
+//decode token
+$container["jwt"] = function ($container) {
+    return new StdClass;
+};

@@ -2,7 +2,7 @@
 include 'fuc.php';
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-
+use \Firebase\JWT\JWT;
 ### USER PART ###
 
 #GET INFOMATION
@@ -29,14 +29,10 @@ $app->get('/user/uni/info/{uni}',function(Request $request,Response $response,$a
         $stmt->execute();
         $infos = $stmt->fetchAll();
         for($index = 0 ; $index < count($infos);$index++){
-            // $detail = array($infos[$index]['details']);
             $detail = json_decode($infos[$index]['details'], true);
             $infos[$index]['details'] = $detail;
         }
-        
-        //print_r($infos);
         return $this->response->withJson($infos);
-        //return $this->response->write(json_encode($infos));
 
     }catch(PDOException $e){
         $this->logger->addInfo($e->message); 
@@ -71,20 +67,21 @@ $app->post('/user/login',function(Request $request,Response $response){
         $result = $stmt->fetchAll();
         if(count($result) > 0){
             if(password_verify($params['password'], $result[0]['pwd'])){
-                //token
-                /*
-                $token = bin2hex($hash[0]['sid']);
-                $sql = "INSERT INTO login_token(fk_sid,token,expire) VALUES (:fk_sid,:token:expire)";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("fk_sid",$hash[0]['sid']);
-                $stmt->bindParam("token",$token);
-                $expire = date("Y-m-d H:i:s");
-                $stmt->bindParam("fk_sid",$hash[0]['sid']);
-                */
                 //will return token here but not implement yet
+                $date = new DateTime();
+                $start_time = $date->getTimestamp();
+                $end_time = $start_time + 1800;
+                $key = "testing";
+                $token = array(
+                    "iat" => $date->getTimestamp(),
+                    "nbf" => $start_time,
+                    "exp" => $end_time
+                );
+                $jwt = JWT::encode($token, $key);
                 return $this->response->withJson(array(
                     'message' => 'login complete! return id',
-                    'id' => $result[0]['id']
+                    'id' => $result[0]['id'],
+                    'token' => 'Bearer '. $jwt
                 ));
             }else{
                 return $this->response->withJson(array(
@@ -147,7 +144,41 @@ $app->patch('/user/details/{id}',function(Request $request,Response $response,$a
     }
 });
 //Sport
+#GET type of sports
+$app->get('/sports/type',function(Request $request,Response $response){
+    try{
+        $sql = "SELECT * from sport";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        $types = $stmt->fetchAll();
+        for($index = 0 ; $index < count($types);$index++){
+            $detail = json_decode($types[$index]['details'], true);
+            $types[$index]['details'] = $detail;
+        }
+        return $this->response->withJson($types);
 
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message);
+    }
+});
+
+#GET type of sport by name, type
+$app->get('/sport/type',function(Request $request,Response $response){
+    $args = $request->getQueryParams();
+    try{
+        $sql = "SELECT * from sport WHERE sport_name = 'badminton' AND json_extract(`details`, '$.type') = :type";
+        //SELECT * from sport WHERE sport_name = 'badminton' AND JSON_CONTAINS(details,'singles men','$.type')
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("type",$args['type']);
+        $stmt->execute();
+        $type = $stmt->fetchAll();
+        $detail = json_decode($type[0]['details'], true);
+        $type[0]['details'] = $detail;
+        return $this->response->withJson($type);
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message);
+    }
+});
 
 //add user for testing
 $app->post('/user/test/add',function(Request $request,Response $response){

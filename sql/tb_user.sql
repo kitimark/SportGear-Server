@@ -10,5 +10,6 @@ CREATE TABLE account(
     img_url text,
     details JSON,
     CHECK (JSON_VALID(details)),
-    UNIQUE KEY (sid,email)
+    UNIQUE KEY (email),
+    UNIQUE KEY (sid)
 );

@@ -17,7 +17,7 @@ CREATE TABLE sport_tour(
 
 CREATE TABLE sport_team(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    team_name varchar(100),
+    team_name varchar(1),
     fk_sport_id INT NOT NULL,
     FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
     

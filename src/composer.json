@@ -2,6 +2,8 @@
     "require": {
         "slim/slim": "^3.12",
         "slim/csrf": "^0.8.3",
-        "monolog/monolog": "^1.17"
+        "monolog/monolog": "^1.17",
+        "tuupola/slim-jwt-auth": "^3.3",
+        "firebase/php-jwt": "^5.0"
     }
 }
