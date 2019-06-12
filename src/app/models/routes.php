@@ -7,7 +7,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 #GET INFOMATION
 //get info from id (will change to token later)
-$app->get('/user/{id}',function(Request $request,Response $response,$args){
+$app->get('/user/info/{id}',function(Request $request,Response $response,$args){
     try{
         $sql = "SELECT * FROM account WHERE id = :id";
         $stmt = $this->db->prepare($sql);
@@ -20,7 +20,45 @@ $app->get('/user/{id}',function(Request $request,Response $response,$args){
         $this->logger->addInfo($e->message); 
     }
 });
+//get info from id (will change to token later)
+$app->get('/user/uni/info/{uni}',function(Request $request,Response $response,$args){
+    try{
+        $sql = "SELECT * FROM account WHERE uni = :uni";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("uni",$args['uni']);
+        $stmt->execute();
+        $infos = $stmt->fetchAll();
+        for($index = 0 ; $index < count($infos);$index++){
+            // $detail = array($infos[$index]['details']);
+            $detail = json_decode($infos[$index]['details'], true);
+            $infos[$index]['details'] = $detail;
+        }
+        
+        //print_r($infos);
+        return $this->response->withJson($infos);
+        //return $this->response->write(json_encode($infos));
 
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message); 
+    }
+});
+#GET DETAILS
+//get details by id
+$app->get('/user/details/{id}',function(Request $request,Response $response,$args){
+    try{
+        $sql = "SELECT details FROM account WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("id",$args['id']);
+        $stmt->execute();
+        $info = $stmt->fetchAll();
+        $detail = json_decode($infos[$index]['details'], true);
+        $infos[$index]['details'] = $detail;
+        return $this->response->withJson($info);       
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message); 
+    }
+
+});
 #LOGIN
 //login the user
 $app->post('/user/login',function(Request $request,Response $response){
@@ -97,7 +135,7 @@ $app->patch('/user/details/{id}',function(Request $request,Response $response,$a
     try{
         $sql = "UPDATE account SET details=:details WHERE id=:id";
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam("details",$params);
+        $stmt->bindParam("details",json_encode($params));
         $stmt->bindParam("id",$args['id']);
         $stmt->execute();
         return $this->response->withJson(array(

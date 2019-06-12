@@ -1,5 +1,6 @@
 <?php 
 header("Content-Type: application/json");
+//ini_set('display_errors', 1);
 if (PHP_SAPI == 'cli-server') {
     // To help the built-in PHP dev server, check if the request was actually for
     // something which should probably be served as a static file
@@ -12,12 +13,13 @@ if (PHP_SAPI == 'cli-server') {
 
 require __DIR__ . '/../vendor/autoload.php';
 
-//session_start();
+session_start();
 
 require __DIR__ . '/../app/models/config.php';
 $app = new \Slim\App($config);
 
 
 require __DIR__ . '/../app/models/dependencies.php';
+require __DIR__ . '/../app/models/middleware.php';
 require __DIR__ . '/../app/models/routes.php';
 $app->run();
