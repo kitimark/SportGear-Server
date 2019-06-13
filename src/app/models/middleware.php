@@ -1,9 +1,8 @@
 <?php
 // Application middleware
-
 $app->add(new Tuupola\Middleware\JwtAuthentication([
-    "secret" => "testing",
-    "ignore" => ["/user/login"],
+    "secret" => $config['settings']['token']['key'],
+    "ignore" => ["/user/login","/user/test/add"],
     "callback" => function ($request, $response, $arguments) use ($container) {
         $container["jwt"] = $arguments["decoded"];
     },

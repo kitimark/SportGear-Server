@@ -2,7 +2,13 @@
 include 'fuc.php';
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWT; // use for generate token
+
+
+### University PART ###
+$app->post('/uni/login',function(Request $request,Response $response){
+
+});
 ### USER PART ###
 
 #GET INFOMATION
@@ -14,6 +20,8 @@ $app->get('/user/info/{id}',function(Request $request,Response $response,$args){
         $stmt->bindParam("id",$args['id']);
         $stmt->execute();
         $info = $stmt->fetchAll();
+        $detail = json_decode($infos[0]['details'], true);
+        $info[0]['details'] = $detail;
         return $this->response->withJson($info);
 
     }catch(PDOException $e){
@@ -67,21 +75,24 @@ $app->post('/user/login',function(Request $request,Response $response){
         $result = $stmt->fetchAll();
         if(count($result) > 0){
             if(password_verify($params['password'], $result[0]['pwd'])){
-                //will return token here but not implement yet
+                //return token in header
                 $date = new DateTime();
                 $start_time = $date->getTimestamp();
                 $end_time = $start_time + 1800;
-                $key = "testing";
+                $settings = $this->get('settings')['token'];
+                $key = $settings['key'];
                 $token = array(
                     "iat" => $date->getTimestamp(),
                     "nbf" => $start_time,
                     "exp" => $end_time
                 );
-                $jwt = JWT::encode($token, $key);
+                $jwt = 'Bearer ' . JWT::encode($token, $key);
+                $this->response = $response->withAddedHeader('Authorization' , $jwt);
+                //encoded id and sid before return
                 return $this->response->withJson(array(
-                    'message' => 'login complete! return id',
-                    'id' => $result[0]['id'],
-                    'token' => 'Bearer '. $jwt
+                    'message' => 'login complete! return id,sid',
+                    'id' => base64_encode($result[0]['id']),
+                    'sid' => base64_encode($result[0]['sid'])
                 ));
             }else{
                 return $this->response->withJson(array(
@@ -138,6 +149,38 @@ $app->patch('/user/details/{id}',function(Request $request,Response $response,$a
         return $this->response->withJson(array(
             'message' => 'Updated details'
         ));
+
+    }catch(PDOException $e){
+        $this->logger->addInfo($e->message);
+    }
+});
+##Add user
+$app->post('/user/add',function(Request $request,Response $response){
+    $params = $request->getParsedBody();
+    $sid = $params['sid'];
+    $uni = $params['uni'];
+    $fname = $params['fname'];
+    $lname = $params['lname'];
+    $email = $params['email'];
+    $hash = password_hash($params['password'], PASSWORD_DEFAULT);
+    try{
+        $sql = 'INSERT INTO account(sid,uni,fname,lname,email,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:hash)';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam("sid", $sid);
+        $stmt->bindParam("uni",  $uni);
+        $stmt->bindParam("fname", $fname);
+        $stmt->bindParam("lname", $lname);
+        $stmt->bindParam("email", $email);
+        $stmt->bindParam("hash", $hash);
+        $stmt->execute();
+        return $this->response->withJson(array(
+            "sid" => $sid,
+            "uni" => $uni,
+            "fname" => $fname,
+            "lname" => $lname,
+            "email" => $email,
+            "pwd_hash" => $hash,
+    ));
 
     }catch(PDOException $e){
         $this->logger->addInfo($e->message);
@@ -217,7 +260,5 @@ $app->post('/user/test/add',function(Request $request,Response $response){
         }
     }else{
         return $this->response->write('error');
-    }
-    
-    
+    } 
 });

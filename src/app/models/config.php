@@ -13,7 +13,7 @@ $config = [
         'logger' => [
             'name' => 'slim-app',
             'path' => __DIR__ . '/../logs/app.log',
-            'level' => \Monolog\Logger::DEBUG,
+            'level' => '\Monolog\Logger::DEBUG',
         ],
 
         'db' => [
@@ -22,6 +22,9 @@ $config = [
             'user' => DbUser,
             'pass' => DbPass
         ],
+        'token' =>[
+            'key' => base64_encode('testing')
+        ]
         
     ],
 ];
