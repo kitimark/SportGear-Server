@@ -5,22 +5,52 @@ use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT; // use for generate token
 
 
-### University PART ###
-$app->post('/uni/login',function(Request $request,Response $response){
-
-});
-### USER PART ###
-
 #GET INFOMATION
 //get info from id (will change to token later)
 $app->group('/api/v1',function() use ($app){
     /*
      */
+    $app->group('/university',function() use ($app){
+        //get info from id (will change to token later)
+        $app->post('/login',function(Request $request,Response $response){
+            $params = $request->getParsedBody();
+            try{
+                $sql = "SELECT uni,uni_pwd FROM account_uni WHERE uni = :uni";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam("uni",$params['uni']);
+                $stmt->execute();
+            }catch(PDOException $e){
+                $this->logger->addInfo($e->message);
+            }
+        });
+        $app->get('/info/{uni}',function(Request $request,Response $response,$args){
+            try{
+                $sql = "SELECT * FROM account WHERE uni = :uni";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam("uni",$args['uni']);
+                $stmt->execute();
+                $infos = $stmt->fetchAll();
+                for($index = 0 ; $index < count($infos);$index++){
+                    $detail = json_decode($infos[$index]['details'], true);
+                    $infos[$index]['details'] = $detail;
+                }
+                return $this->response->withJson($infos);
+            }catch(PDOException $e){
+                $this->logger->addInfo($e->message); 
+            }
+        });
+    });
     $app->group('/users', function () use ($app) {
 
         #GET
         //get info by id
-        $app->get('/info/{id}',function(Request $request,Response $response,$args){
+        $app->get('/info',function(Request $request,Response $response){
+            $args = $request->getQueryParams();
+            if(empty($args['id'])){
+                return $this->response->withJson(array(
+                    'message' => 'QueryParams not set!'
+                ));
+            }
             try{
                 $sql = "SELECT * FROM account WHERE id = :id";
                 $stmt = $this->db->prepare($sql);
@@ -146,24 +176,6 @@ $app->group('/api/v1',function() use ($app){
             }
         });
     });
-});
-//get info from id (will change to token later)
-$app->get('/user/uni/info/{uni}',function(Request $request,Response $response,$args){
-    try{
-        $sql = "SELECT * FROM account WHERE uni = :uni";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam("uni",$args['uni']);
-        $stmt->execute();
-        $infos = $stmt->fetchAll();
-        for($index = 0 ; $index < count($infos);$index++){
-            $detail = json_decode($infos[$index]['details'], true);
-            $infos[$index]['details'] = $detail;
-        }
-        return $this->response->withJson($infos);
-
-    }catch(PDOException $e){
-        $this->logger->addInfo($e->message); 
-    }
 });
 
 //Sport
