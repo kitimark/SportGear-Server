@@ -28,7 +28,7 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->get('/teamByuniversity',function(Request $request,Response $response){
                 $params = $request->getQueryParams();
-                if(empty($params['university'])){
+                if(empty($params['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
@@ -43,12 +43,36 @@ $app->group('/api/v1',function() use ($app){
                      ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute();
-                    $stmt->bindParam("uni",$params['university']);
+                    $stmt->bindParam("uni",$params['uni']);
                     $result = $stmt->fetchAll;
                     return $this->response->withJson($result);
 
                 }catch(PDOException $e){
                     $this->logger->addInfo($e->message);
+                }
+            });
+            $app->get('/pleyerBytype',function(Request $request,Response $response){
+                $params = $request->getQueryParams();
+                if(empty($params['type']) || empty($params['uni'])){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "SELECT account.fname,account.lname 
+                    FROM account
+                    JOIN sport_player
+                    ON account.id = sport_player.fk_account_id
+                    WHERE uni = :uni AND fk_sport_id LIKE ':id'
+                    ";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("id",substr($params['type']),2);
+                    $stmt->execute();
+                    $result = $stmt->fatchAll();
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e->message);                    
                 }
             });
         });
@@ -88,7 +112,8 @@ $app->group('/api/v1',function() use ($app){
                         $token = array(
                             "iat" => $date->getTimestamp(),
                             "nbf" => $start_time,
-                            "exp" => $end_time
+                            "exp" => $end_time,
+                            "uni" => $uni
                         );
                         $jwt = 'Bearer ' . JWT::encode($token, $key);
                         $this->response = $response->withAddedHeader('Authorization' , $jwt);

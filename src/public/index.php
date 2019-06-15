@@ -39,5 +39,4 @@ foreach ($routes as $route) {
 }
 
 $container['allRoutes'] = $allRoutes;
-
 $app->run();
