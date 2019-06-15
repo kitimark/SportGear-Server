@@ -10,6 +10,35 @@ use \Firebase\JWT\JWT; // use for generate token
 $app->group('/api/v1',function() use ($app){
     /*
      */
+    $app->group('/sport',function() use ($app){
+        $app->group('/list',function() use ($app){
+            $app->get('/sport',function(Request $request,Response $response){
+                try{    
+                    $sql = "SELECT * FROM sport";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->execute();
+                    $result = $stmt->fatchAll();
+                    return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e->message);
+                }
+            });
+        });
+        $app->group('/search',function() use ($app){
+            $app->get('/{id}',function(Request $request,Response $response,$args){
+                try{
+                    $sql = "SELECT * FROM sport WHERE id=:id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("id",$args['id']);
+                    $stmt->execute();
+                    $result = $stmt->fatchAll();
+                    return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e->message);
+                }
+            });
+        });
+    });
     $app->group('/university',function() use ($app){
         //get info from id (will change to token later)
         $app->post('/login',function(Request $request,Response $response){
@@ -19,6 +48,37 @@ $app->group('/api/v1',function() use ($app){
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
+                $result = $stmt->fetchAll();
+                if(count($result) > 0){
+                    if(password_verify($params['password'], $result[0]['pwd'])){
+                        //return token in header
+                        $date = new DateTime();
+                        $start_time = $date->getTimestamp();
+                        $end_time = $start_time + 3600;
+                        $settings = $this->get('settings')['token'];
+                        $key = $settings['key'];
+                        $token = array(
+                            "iat" => $date->getTimestamp(),
+                            "nbf" => $start_time,
+                            "exp" => $end_time
+                        );
+                        $jwt = 'Bearer ' . JWT::encode($token, $key);
+                        $this->response = $response->withAddedHeader('Authorization' , $jwt);
+                        //encoded id and sid before return
+                        return $this->response->withJson(array(
+                            'message' => 'login complete! return id',
+                            'id' => base64_encode($result[0]['id']),
+                        ));
+                    }else{
+                        return $this->response->withJson(array(
+                            'message' => 'password not match'
+                        ));
+                    }  
+                }else{
+                    return $this->response->withJson(array(
+                        'message' => 'User not found!'
+                    ));
+                }
             }catch(PDOException $e){
                 $this->logger->addInfo($e->message);
             }
@@ -177,45 +237,6 @@ $app->group('/api/v1',function() use ($app){
         });
     });
 });
-
-//Sport
-#GET type of sports
-
-$app->get('/sports/type',function(Request $request,Response $response){
-    try{
-        $sql = "SELECT * from sport";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        $types = $stmt->fetchAll();
-        for($index = 0 ; $index < count($types);$index++){
-            $detail = json_decode($types[$index]['details'], true);
-            $types[$index]['details'] = $detail;
-        }
-        return $this->response->withJson($types);
-
-    }catch(PDOException $e){
-        $this->logger->addInfo($e->message);
-    }
-});
-
-#GET type of sport by name, type
-$app->get('/sport/type',function(Request $request,Response $response){
-    $args = $request->getQueryParams();
-    try{
-        $sql = "SELECT * from sport WHERE sport_name = 'badminton' AND json_extract(`details`, '$.type') = :type";
-        //SELECT * from sport WHERE sport_name = 'badminton' AND JSON_CONTAINS(details,'singles men','$.type')
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam("type",$args['type']);
-        $stmt->execute();
-        $type = $stmt->fetchAll();
-        $detail = json_decode($type[0]['details'], true);
-        $type[0]['details'] = $detail;
-        return $this->response->withJson($type);
-    }catch(PDOException $e){
-        $this->logger->addInfo($e->message);
-    }
-});
-
 //add user for testing
 $app->post('/user/test/add',function(Request $request,Response $response){
     $params = $request->getParsedBody();
