@@ -28,5 +28,16 @@ $app = new \Slim\App($config);
 
 require __DIR__ . '/../app/models/dependencies.php';
 require __DIR__ . '/../app/models/middleware.php';
+
 require __DIR__ . '/../app/models/routes.php';
+
+$allRoutes = [];
+$routes = $app->getContainer()->router->getRoutes();
+
+foreach ($routes as $route) {
+  array_push($allRoutes, $route->getPattern());
+}
+
+$container['allRoutes'] = $allRoutes;
+
 $app->run();

@@ -4,21 +4,49 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT; // use for generate token
 
-
+$app->get('/routes',function(Request $request,Response $response){
+    return $this->response->withJson($this->allRoutes);
+});
 #GET INFOMATION
 //get info from id (will change to token later)
+
 $app->group('/api/v1',function() use ($app){
     /*
      */
     $app->group('/sport',function() use ($app){
         $app->group('/list',function() use ($app){
-            $app->get('/sport',function(Request $request,Response $response){
+            $app->get('/info',function(Request $request,Response $response){
                 try{    
                     $sql = "SELECT * FROM sport";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute();
                     $result = $stmt->fatchAll();
                     return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e->message);
+                }
+            });
+            $app->get('/teamByuniversity',function(Request $request,Response $response){
+                $params = $request->getQueryParams();
+                if(empty($params['university'])){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "SELECT * 
+                    FROM sport_player 
+                    JOIN account 
+                    ON sport_player.fk_acount_id = account.id
+                    WHERE uni = :uni
+                     ";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->execute();
+                    $stmt->bindParam("uni",$params['university']);
+                    $result = $stmt->fetchAll;
+                    return $this->response->withJson($result);
+
                 }catch(PDOException $e){
                     $this->logger->addInfo($e->message);
                 }
