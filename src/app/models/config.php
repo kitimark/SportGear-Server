@@ -22,6 +22,9 @@ $config = [
             'user' => DbUser,
             'pass' => DbPass
         ],
+        'token' =>[
+            'key' => base64_encode('testing')
+        ]
         
     ],
 ];
