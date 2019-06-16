@@ -105,28 +105,47 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/addTeam',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
-                if(empty($params['team_name']) || empty($params['sport_id'])){
-
-                }
-
-            });
-            $app->post('/addPlayer',function(Request $request , Response $response){
-                $params = $request->getParsedBody();
-                if(empty($params['sport_id']) || empty($params['team_id'])){
+                //$this->logger->addInfo(print_r($params));
+                if(empty($params['team_name']) || empty($params['sport_id']) || empty($params['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
-                
                 try{
-                    $sql = "";
+                    $sql = "INSERT INTO sport_team(team_name,fk_sport_id,uni) VALUES (:team_name,:sport_id,:uni)";
                     $stmt = $this->db->prepare($sql);
-                    $stmt->execute();
+                    $stmt->bindParam("team_name",$params['team_name']);
+                    $stmt->bindParam("sport_id",$params['sport_id']);
                     $stmt->bindParam("uni",$params['uni']);
-                
+                    $stmt->execute();
+                    return $this->response->withJson(array(
+                        'message' => 'Added team'
+                    ));
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e);          
+                    $this->logger->addInfo($e);
+                }
+
+            });
+            $app->post('/addPlayer',function(Request $request , Response $response){
+                $params = $request->getParsedBody();
+                if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                for($index = 0 ; $index < count($params['account_id']);$index++){
+                    try{
+                        $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->bindParam("team_id",$params['team_id']);
+                        $stmt->bindParam("account_id",$params['account_id'][$index]);
+                        $stmt->bindParam("sport_id",$params['sport_id']);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->logger->addInfo($e);          
+                    }
                 }
             });
         });
