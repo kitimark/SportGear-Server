@@ -23,7 +23,7 @@ $app->group('/api/v1',function() use ($app){
                     $result = $stmt->fetchall();
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);
+                    $this->logger->addInfo($e);
                 }
             });
             $app->get('/teamByuniversity',function(Request $request,Response $response){
@@ -206,7 +206,7 @@ $app->group('/api/v1',function() use ($app){
                     $result = $stmt->fatchAll();
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);
+                    $this->logger->addInfo($e);
                 }
             });
         });
@@ -277,7 +277,7 @@ $app->group('/api/v1',function() use ($app){
                 }
                 return $this->response->withJson($infos);
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message); 
+                $this->logger->addInfo($e); 
             }
         });
     });
@@ -308,7 +308,7 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message);
+                $this->logger->addInfo($e);
             }
         });
 
@@ -342,7 +342,7 @@ $app->group('/api/v1',function() use ($app){
             ));
 
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message);
+                $this->logger->addInfo($e);
             }
         });
         #LOGIN
@@ -387,7 +387,7 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message); 
+                $this->logger->addInfo($e); 
             }
         });
         #PATCH
@@ -413,7 +413,7 @@ $app->group('/api/v1',function() use ($app){
                 ));
 
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message);
+                $this->logger->addInfo($e);
             }
         });
     });
