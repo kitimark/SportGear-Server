@@ -35,11 +35,11 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
                 try{
-                    $sql = "SELECT * 
+                    $sql = "SELECT *
                     FROM sport_player 
                     JOIN account 
-                    ON sport_player.fk_acount_id = account.id
-                    WHERE uni = :uni
+                    ON sport_player.fk_account_id = account.id
+                    WHERE account.uni = :uni
                      ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute();
@@ -48,7 +48,7 @@ $app->group('/api/v1',function() use ($app){
                     return $this->response->withJson($result);
 
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);
+                    $this->logger->addInfo($e);
                 }
             });
             $app->get('/pleyerBytype',function(Request $request,Response $response){
@@ -100,7 +100,7 @@ $app->group('/api/v1',function() use ($app){
                     $result = $stmt->fatchAll();
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);                    
+                    $this->logger->addInfo($e);                    
                 }
             });
             $app->post('/addTeam',function(Request $request , Response $response){
@@ -113,7 +113,20 @@ $app->group('/api/v1',function() use ($app){
             $app->post('/addPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
                 if(empty($params['sport_id']) || empty($params['team_id'])){
-
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                
+                try{
+                    $sql = "";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->execute();
+                    $stmt->bindParam("uni",$params['uni']);
+                
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);          
                 }
             });
         });
@@ -143,7 +156,7 @@ $app->group('/api/v1',function() use ($app){
                 ));
             }
             try{
-                $sql = "SELECT id,uni,uni_full_name,uni_pwd, FROM account_uni WHERE uni = :uni";
+                $sql = "SELECT id,uni,uni_full_name,uni_pwd FROM account_uni WHERE uni = :uni";
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
