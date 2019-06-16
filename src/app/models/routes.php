@@ -59,22 +59,35 @@ $app->group('/api/v1',function() use ($app){
                         'message' => 'QueryParams not set!'
                     ));
                 }
+                //TODO
                 try{
-                    $sql = "SELECT account.id,account.sid,account.fname,account.lname 
+                    //
+                    $sql = "SELECT sport.id as sport_id,sport_team.team_name,account.id,account.sid,account.fname,account.lname
                     FROM account
                     JOIN sport_player
                     ON account.id = sport_player.fk_account_id
-                    WHERE account.uni = :uni AND sport_player.fk_sport_id = :id
+                    JOIN sport_team
+                    ON sport_team.id = sport_player.fk_team_id
+                    JOIN sport
+                    ON sport.id = sport_team.fk_sport_id
+                    WHERE sport_team.uni = :uni AND sport_player.fk_sport_id = :id
                     ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->bindParam("uni",$params['uni']);
                     $stmt->bindParam("id",$params['type']);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
+                    $result = groupArray($result,'sport_id');
+                    $keys = array_keys($result);
+                    for($i = 0 ; $i < count($keys) ; $i++){
+                        $result[$keys[$i]] = groupArray($result[$keys[$i]],'team_name');
+                    }
                     return $this->response->withJson($result);
+                    //return $this->response->write(print_r($result,true));
+
                     
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);                    
+                    $this->logger->addInfo($e);                    
                 }
             });
             $app->get('/teamBytype',function(Request $request,Response $response){
