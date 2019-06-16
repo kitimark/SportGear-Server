@@ -143,7 +143,7 @@ $app->group('/api/v1',function() use ($app){
                 ));
             }
             try{
-                $sql = "SELECT id,uni,uni_pwd FROM account_uni WHERE uni = :uni";
+                $sql = "SELECT id,uni,uni_full_name,uni_pwd, FROM account_uni WHERE uni = :uni";
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
@@ -166,7 +166,9 @@ $app->group('/api/v1',function() use ($app){
                         //encoded id and sid before return
                         return $this->response->withJson(array(
                             'message' => 'login complete! return id',
-                            'id' => $result[0]['id']
+                            'id' => $result[0]['id'],
+                            'uni' => $result[0]['uni'],
+                            'fullname' => $result[0]['uni_full_name']
                         ));
                     }else{
                         return $this->response->withJson(array(
