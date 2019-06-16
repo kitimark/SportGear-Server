@@ -20,7 +20,7 @@ $app->group('/api/v1',function() use ($app){
                     $sql = "SELECT * FROM sport";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute();
-                    $result = $stmt->fatchAll();
+                    $result = $stmt->fetchall();
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e->message);
@@ -28,27 +28,171 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->get('/teamByuniversity',function(Request $request,Response $response){
                 $params = $request->getQueryParams();
-                if(empty($params['university'])){
+                if(empty($params['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
                 try{
-                    $sql = "SELECT * 
+                    $sql = "SELECT *
                     FROM sport_player 
                     JOIN account 
-                    ON sport_player.fk_acount_id = account.id
-                    WHERE uni = :uni
+                    ON sport_player.fk_account_id = account.id
+                    WHERE account.uni = :uni
                      ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute();
-                    $stmt->bindParam("uni",$params['university']);
+                    $stmt->bindParam("uni",$params['uni']);
                     $result = $stmt->fetchAll;
                     return $this->response->withJson($result);
 
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e->message);
+                    $this->logger->addInfo($e);
+                }
+            });
+            $app->get('/pleyerBytype',function(Request $request,Response $response){
+                $params = $request->getQueryParams();
+                if(empty($params['type']) || empty($params['uni'])){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                //TODO
+                try{
+                    //
+                    $sql = "SELECT sport.id as sport_id,sport_team.team_name,account.id,account.sid,account.fname,account.lname
+                    FROM account
+                    JOIN sport_player
+                    ON account.id = sport_player.fk_account_id
+                    JOIN sport_team
+                    ON sport_team.id = sport_player.fk_team_id
+                    JOIN sport
+                    ON sport.id = sport_team.fk_sport_id
+                    WHERE sport_team.uni = :uni AND sport_player.fk_sport_id = :id
+                    ";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("id",$params['type']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    $result = groupArray($result,'sport_id');
+                    $keys = array_keys($result);
+                    for($i = 0 ; $i < count($keys) ; $i++){
+                        $result[$keys[$i]] = groupArray($result[$keys[$i]],'team_name');
+                    }
+                    return $this->response->withJson($result);
+                    //return $this->response->write(print_r($result,true));
+
+                    
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);                    
+                }
+            });
+            $app->get('/teamBytype',function(Request $request,Response $response){
+                // type = 1001
+                // uni = cmu
+                // team_id = 8
+                $params = $request->getQueryParams();
+                if(empty($params['type']) || empty($params['uni'] || empty($params['team_id']))){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "SELECT account.id,account.sid,account.fname,account.lname
+                    FROM account
+                    JOIN sport_player
+                    ON account.id = sport_player.fk_account_id
+                    JOIN sport_team
+                    ON sport_team.id = sport_player.fk_team_id
+                    WHERE account.uni = :uni AND sport_player.fk_sport_id = :id AND sport_player.fk_team_id = :teamid
+                    ";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("id",$params['type']);
+                    $stmt->bindParam("teamid",$params['team_id']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);                    
+                }
+            });
+            $app->post('/addTeam',function(Request $request , Response $response){
+                $params = $request->getParsedBody();
+                //$this->logger->addInfo(print_r($params));
+                if(empty($params['team_name']) || empty($params['sport_id']) || empty($params['uni'])){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "INSERT INTO sport_team(team_name,fk_sport_id,uni) VALUES (:team_name,:sport_id,:uni)";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("team_name",$params['team_name']);
+                    $stmt->bindParam("sport_id",$params['sport_id']);
+                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->execute();
+                    return $this->response->withJson(array(
+                        'message' => 'Added team'
+                    ));
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+
+            });
+            $app->post('/addPlayer',function(Request $request , Response $response){
+                $params = $request->getParsedBody();
+                if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                for($index = 0 ; $index < count($params['account_id']);$index++){
+                    try{
+                        $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->bindParam("team_id",$params['team_id']);
+                        $stmt->bindParam("account_id",$params['account_id'][$index]);
+                        $stmt->bindParam("sport_id",$params['sport_id']);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->logger->addInfo($e);          
+                    }
+                }
+            });
+            $app->patch('/addPlayer',function(Request $request , Response $response){
+                $params = $request->getParsedBody();
+                if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "DELETE FROM sport_player WHERE fk_team_id = :team_id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("team_id",$params['team_id']);
+                    $stmt->execute();
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);                             
+                }
+                for($index = 0 ; $index < count($params['account_id']);$index++){
+                    try{
+                        $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->bindParam("team_id",$params['team_id']);
+                        $stmt->bindParam("account_id",$params['account_id'][$index]);
+                        $stmt->bindParam("sport_id",$params['sport_id']);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->logger->addInfo($e);          
+                    }
                 }
             });
         });
@@ -71,14 +215,20 @@ $app->group('/api/v1',function() use ($app){
         //get info from id (will change to token later)
         $app->post('/login',function(Request $request,Response $response){
             $params = $request->getParsedBody();
+            if(empty($params['uni']) || empty($params['pwd'])){
+                return $this->response->withJson(array(
+                    'status' => 'error',
+                    'message' => 'QueryParams not set!'
+                ));
+            }
             try{
-                $sql = "SELECT uni,uni_pwd FROM account_uni WHERE uni = :uni";
+                $sql = "SELECT id,uni,uni_full_name,uni_pwd FROM account_uni WHERE uni = :uni";
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
                 $result = $stmt->fetchAll();
                 if(count($result) > 0){
-                    if(password_verify($params['password'], $result[0]['pwd'])){
+                    if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
                         //return token in header
                         $date = new DateTime();
                         $start_time = $date->getTimestamp();
@@ -95,7 +245,9 @@ $app->group('/api/v1',function() use ($app){
                         //encoded id and sid before return
                         return $this->response->withJson(array(
                             'message' => 'login complete! return id',
-                            'id' => base64_encode($result[0]['id']),
+                            'id' => $result[0]['id'],
+                            'uni' => $result[0]['uni'],
+                            'fullname' => $result[0]['uni_full_name']
                         ));
                     }else{
                         return $this->response->withJson(array(
@@ -108,7 +260,8 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message);
+                $this->logger->addInfo($e);
+                echo $e;
             }
         });
         $app->get('/info/{uni}',function(Request $request,Response $response,$args){
@@ -155,13 +308,13 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
             }catch(PDOException $e){
-                $this->logger->addInfo($e->message); 
+                $this->logger->addInfo($e->message);
             }
         });
 
         #POST
         ##Add user
-        $app->post('/add',function(Request $request,Response $response){
+        $app->post('',function(Request $request,Response $response){
             $params = $request->getParsedBody();
             $sid = $params['sid'];
             $uni = $params['uni'];
@@ -271,9 +424,10 @@ $app->post('/user/test/add',function(Request $request,Response $response){
     if(!empty($params['username'])){
         $hash = password_hash($params['username'], PASSWORD_DEFAULT);
         $characters = '0123456789';
+        $sid = "";
         for ($i = 0; $i < 13; $i++) { 
             $index = rand(0, strlen($characters) - 1); 
-            $sid .= $characters[$index]; 
+            $sid .= $characters[$index];
         }
         $fname = $lname = $params['username'];
         $email = $params['username'] .'@testing.localhost';
@@ -298,7 +452,8 @@ $app->post('/user/test/add',function(Request $request,Response $response){
         ));
 
         }catch(PDOException $e){
-            $this->logger->addInfo($e->message);
+            $this->logger->addInfo($e);
+            return $this->response->write($e);
         }
     }else{
         return $this->response->write('error');

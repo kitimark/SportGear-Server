@@ -1,6 +1,6 @@
 <?php
 
-define("DbHost", "localhost");
+define("DbHost", "127.0.0.1");
 define("DbName", "gearsport");
 define("DbUser", "gearsport");
 define("DbPass", "Z2VhcnNwb3J0");
