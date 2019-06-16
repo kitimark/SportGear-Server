@@ -60,22 +60,27 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
                 try{
-                    $sql = "SELECT account.sid,account.fname,account.lname 
+                    $sql = "SELECT account.id,account.sid,account.fname,account.lname 
                     FROM account
                     JOIN sport_player
                     ON account.id = sport_player.fk_account_id
-                    WHERE account.uni = :uni AND sport_player.fk_sport_id LIKE ':id'
+                    WHERE account.uni = :uni AND sport_player.fk_sport_id = :id
                     ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->bindParam("uni",$params['uni']);
-                    $stmt->bindParam("id",substr($params['type']),2);
+                    $stmt->bindParam("id",$params['type']);
                     $stmt->execute();
-                    $result = $stmt->fatchAll();
+                    $result = $stmt->fetchAll();
+                    return $this->response->withJson($result);
+                    
                 }catch(PDOException $e){
                     $this->logger->addInfo($e->message);                    
                 }
             });
             $app->get('/teamBytype',function(Request $request,Response $response){
+                // type = 1001
+                // uni = cmu
+                // team_id = 8
                 $params = $request->getQueryParams();
                 if(empty($params['type']) || empty($params['uni'] || empty($params['team_id']))){
                     return $this->response->withJson(array(
@@ -84,20 +89,20 @@ $app->group('/api/v1',function() use ($app){
                     ));
                 }
                 try{
-                    $sql = "SELECT account.fname,account.lname 
+                    $sql = "SELECT account.id,account.sid,account.fname,account.lname
                     FROM account
                     JOIN sport_player
                     ON account.id = sport_player.fk_account_id
                     JOIN sport_team
                     ON sport_team.id = sport_player.fk_team_id
-                    WHERE uni = :uni AND fk_sport_id LIKE ':id' AND sport_player.fk_team_id = :teamid
+                    WHERE account.uni = :uni AND sport_player.fk_sport_id = :id AND sport_player.fk_team_id = :teamid
                     ";
                     $stmt = $this->db->prepare($sql);
                     $stmt->bindParam("uni",$params['uni']);
-                    $stmt->bindParam("id",substr($params['type']),2);
+                    $stmt->bindParam("id",$params['type']);
                     $stmt->bindParam("teamid",$params['team_id']);
                     $stmt->execute();
-                    $result = $stmt->fatchAll();
+                    $result = $stmt->fetchAll();
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);                    
@@ -134,6 +139,35 @@ $app->group('/api/v1',function() use ($app){
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
+                }
+                for($index = 0 ; $index < count($params['account_id']);$index++){
+                    try{
+                        $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->bindParam("team_id",$params['team_id']);
+                        $stmt->bindParam("account_id",$params['account_id'][$index]);
+                        $stmt->bindParam("sport_id",$params['sport_id']);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->logger->addInfo($e);          
+                    }
+                }
+            });
+            $app->patch('/addPlayer',function(Request $request , Response $response){
+                $params = $request->getParsedBody();
+                if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "DELETE FROM sport_player WHERE fk_team_id = :team_id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("team_id",$params['team_id']);
+                    $stmt->execute();
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);                             
                 }
                 for($index = 0 ; $index < count($params['account_id']);$index++){
                     try{
