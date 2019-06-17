@@ -317,15 +317,15 @@ $app->group('/api/v1',function() use ($app){
         //get info by id
         $app->get('/info',function(Request $request,Response $response){
             $args = $request->getQueryParams();
-            if(empty($args['id'])){
+            if(empty($args['sid'])){
                 return $this->response->withJson(array(
                     'message' => 'QueryParams not set!'
                 ));
             }
             try{
-                $sql = "SELECT * FROM account WHERE id = :id";
+                $sql = "SELECT * FROM account WHERE sid = :sid";
                 $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("id",$args['id']);
+                $stmt->bindParam("sid",$args['sid']);
                 $stmt->execute();
                 $info = $stmt->fetchAll();
                 if(count($info) != 0){
@@ -333,9 +333,8 @@ $app->group('/api/v1',function() use ($app){
                     $info[0]['details'] = $detail;
                     return $this->response->withJson($info);                   
                 }else{
-                    return $this->response->withJson(array(
-                        'message' => 'User not found!'
-                    ));
+                    // no user responses nothing
+                    return $this->response;
                 }
             }catch(PDOException $e){
                 $this->logger->addInfo($e);
