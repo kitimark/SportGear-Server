@@ -1,8 +1,9 @@
 <?php
-include 'fuc.php';
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT; // use for generate token
+
+include 'fuc.php';
 
 $app->get('/routes',function(Request $request,Response $response){
     return $this->response->withJson($this->allRoutes);
@@ -42,8 +43,9 @@ $app->group('/api/v1',function() use ($app){
                     WHERE account.uni = :uni
                      ";
                     $stmt = $this->db->prepare($sql);
-                    $stmt->execute();
+                    
                     $stmt->bindParam("uni",$params['uni']);
+                    $stmt->execute();
                     $result = $stmt->fetchAll;
                     return $this->response->withJson($result);
 
@@ -95,14 +97,14 @@ $app->group('/api/v1',function() use ($app){
                 // uni = cmu
                 // team_id = 8
                 $params = $request->getQueryParams();
-                if(empty($params['type']) || empty($params['uni'] || empty($params['team_id']))){
+                if(empty($params['type']) || empty($params['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
                 try{
-                    $sql = "SELECT account.id,account.sid,account.fname,account.lname
+                    $sql = "SELECT sport_team.id as team_id,account.id as account_id,account.sid,account.fname,account.lname
                     FROM account
                     JOIN sport_player
                     ON account.id = sport_player.fk_account_id
