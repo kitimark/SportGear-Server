@@ -27,6 +27,35 @@ $app->group('/api/v1',function() use ($app){
                     $this->logger->addInfo($e);
                 }
             });
+            $app->get('/teamidBytype',function(Request $request,Response $response){
+                $params = $request->getQueryParams();
+                if(empty($params['type']) || empty($params['uni'])){
+                    return $this->response->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+                }
+                try{
+                    $sql = "SELECT sport_team.id as sport_id ,account.id
+                    FROM account
+                    JOIN sport_player
+                    ON account.id = sport_player.fk_account_id
+                    JOIN sport_team
+                    ON sport_team.id = sport_player.fk_team_id
+                    JOIN sport
+                    ON sport.id = sport_team.fk_sport_id
+                    WHERE sport_team.uni = :uni AND sport_player.fk_sport_id = :id
+                    ";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("id",$params['type']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll(PDO::FETCH_GROUP);
+                    return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+            });
             $app->get('/teamByuniversity',function(Request $request,Response $response){
                 $params = $request->getQueryParams();
                 if(empty($params['uni'])){
@@ -64,7 +93,7 @@ $app->group('/api/v1',function() use ($app){
                 //TODO
                 try{
                     //
-                    $sql = "SELECT sport.id as sport_id,sport_team.team_name,account.id,account.sid,account.fname,account.lname
+                    $sql = "SELECT sport.id as sport_id,sport_team.team_name,sport_team.id as team_id,account.id,account.sid,account.fname,account.lname
                     FROM account
                     JOIN sport_player
                     ON account.id = sport_player.fk_account_id
@@ -95,9 +124,8 @@ $app->group('/api/v1',function() use ($app){
             $app->get('/teamBytype',function(Request $request,Response $response){
                 // type = 1001
                 // uni = cmu
-                // team_id = 8
                 $params = $request->getQueryParams();
-                if(empty($params['type']) || empty($params['uni'])){
+                if(empty($params['type']) || empty($params['uni']) || empty($params['team_id'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
