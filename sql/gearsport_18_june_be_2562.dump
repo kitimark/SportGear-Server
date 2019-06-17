@@ -1,0 +1,205 @@
+-- MySQL dump 10.13  Distrib 5.7.23, for macos10.13 (x86_64)
+--
+-- Host: localhost    Database: gearsport
+-- ------------------------------------------------------
+-- Server version	5.5.5-10.3.15-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `account`
+--
+
+DROP TABLE IF EXISTS `account`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `account` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` varchar(13) NOT NULL,
+  `uni` varchar(7) NOT NULL,
+  `fname` varchar(128) NOT NULL,
+  `lname` varchar(128) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `pwd` varchar(255) NOT NULL,
+  `img_url` text DEFAULT NULL,
+  `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `sid` (`sid`),
+  KEY `uni` (`uni`),
+  CONSTRAINT `account_ibfk_1` FOREIGN KEY (`uni`) REFERENCES `account_uni` (`uni`),
+  CONSTRAINT `CONSTRAINT_1` CHECK (json_valid(`details`))
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `account`
+--
+
+LOCK TABLES `account` WRITE;
+/*!40000 ALTER TABLE `account` DISABLE KEYS */;
+INSERT INTO `account` VALUES (1,'1234567890123','cmu','mark','kiti','m@a.c','$2y$10$8.cnEXTp6WD43fYOLmP/.eDzN/5Whoq5Vi9fBqora9AiEpvKqEvN6',NULL,NULL),(2,'1234567890121','cmu','pop','pop','p@a.c','$2y$10$aIGfzTOGkkk0ObQcUTMh4OTdxAXn6GmpkIQbo1MIRMFW7q.BqeQHS',NULL,NULL),(11,'1234567890120','cmu','m','m','j@a.c','$2y$10$YHGLiZgteYvOjOxRg61LxOLNyWF7aMd1hhsCWHkUE/qTi/dCTV9ou',NULL,NULL),(12,'1234567890124','cmu','f','f','f@a.c','$2y$10$yb/fyR6wfCBIOlIYy5zEq.oNibsFTR/ASV1ly2S8vuBFDz7vMBoU.',NULL,NULL),(14,'1234567890125','cmu','l','l','l@a.c','$2y$10$5ubKN3yYYBgPa2iFvJ5QFuLXdlD.EJkEARtQfYDdOMAQao3n2T6IS',NULL,NULL),(15,'1234567890128','cmu','mak','mak','mak@kk.c','$2y$10$azYLGRk8X47NlSDasyy5duIuxvPXE2YGJq90D1n/efIKPMViyyTLW',NULL,NULL);
+/*!40000 ALTER TABLE `account` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `account_uni`
+--
+
+DROP TABLE IF EXISTS `account_uni`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `account_uni` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uni` varchar(7) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `uni_full_name` varchar(100) NOT NULL,
+  `uni_pwd` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uni` (`uni`)
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `account_uni`
+--
+
+LOCK TABLES `account_uni` WRITE;
+/*!40000 ALTER TABLE `account_uni` DISABLE KEYS */;
+INSERT INTO `account_uni` VALUES (1,'buu','Burapha University@localhost.com','Burapha University','$2y$10$7oqsTOLY/1OZeBGOsVxGxu3BaqUXvz75ZR9Jm8OiPuY9WLNsQmYk.'),(2,'cmu','Chiang Mai University@localhost.com','Chiang Mai University','$2y$10$8.cnEXTp6WD43fYOLmP/.eDzN/5Whoq5Vi9fBqora9AiEpvKqEvN6'),(3,'cu','Chulalongkorn University@localhost.com','Chulalongkorn University','$2y$10$ySdBo0Ns7Ye0z50gdk3CiO629fy3jhCCRp2vH9ohBOuhDfHwF9tou'),(4,'kku','Khon Kean University@localhost.com','Khon Kean University','$2y$10$mwkIOoTtBnQpLhjB63.Vu.lf/KQU3utkz5bBj4bZ0TUjKxwcr4/ry'),(5,'ku','Kasetsart University@localhost.com','Kasetsart University','$2y$10$svEH9VuCoZpIUj.3Lce2AOd3I6llYvZpNor4aBtTrdwAEfCErrTua'),(6,'mbu','Mahamakut Buddhist University@localhost.com','Mahamakut Buddhist University','$2y$10$fN/5BcmwCKdkA4iRkwhujujw0AThF2ApTiSMY23aUS8B3dQ/RggEW'),(7,'mcu','Mahachulalongkornrajavidyalaya University@localhost.com','Mahachulalongkornrajavidyalaya University','$2y$10$EjBBbevpU/HHhAtJ8LqxSuSjceMXFK2HcIK6z15uKPP.xECsG0CBy'),(8,'mfu','Mae Fah Luang University@localhost.com','Mae Fah Luang University','$2y$10$mIb4b5rtpCDHROUUbFHKmuhiwJFzBKkKNjIb5H8gwXgSxHBcs1Nby'),(9,'mju','Maejo University@localhost.com','Maejo University','$2y$10$aknZzQ2yMeeoSMMuHKVEKuWpDOvR21BzbSkqhMKK4wAobMJSsIP.e'),(10,'mu','Mahidol University@localhost.com','Mahidol University','$2y$10$..YAoYFEA3JGKrLqqIZXIuNX6fX8UUobvL1SaZ1N3uzHcEmM5b3pW'),(11,'nmu','Navamindradhiraj University@localhost.com','Navamindradhiraj University','$2y$10$zb.jWCcupZ0rb6QyDKJgme5S5NlUyyeEdESo.iAu1/VKHik2xwS.K'),(12,'psu','Prince of Songkla University@localhost.com','Prince of Songkla University','$2y$10$CfVcbjFsWMl.zN1yaWQ2luT51CKVKEu5/uM1l3FrpmJzkYXEUTnvO'),(13,'sdu','Suan Dusit University@localhost.com','Suan Dusit University','$2y$10$fmKnj7sXUFYvKNbzJA0HquWDBayi4E2TlwajMoVcZktOwwi85y4AW'),(14,'su','Silpakorn University@localhost.com','Silpakorn University','$2y$10$JqrJgxqXlBH.tQ2OOBGUauqikZSJ9sgCUd9Bk1jsR/H6T9T5QU/Xq'),(15,'sut','Suranaree University of Technology@localhost.com','Suranaree University of Technology','$2y$10$ePXrbvv/IDq8/2r3teogYOX179IAbA5cCdBKCmHPQmQ8koQ8hC/W6'),(16,'swu','Srinakharinwirot University@localhost.com','Srinakharinwirot University','$2y$10$Q9ReuitZwNLB0lfcCRr18uH7guKar0UQbtli7tiHh2CxJaBcZtw1i'),(17,'tsu','Thaksin University@localhost.com','Thaksin University','$2y$10$c.raVCxP2SN/agmq1v5P/up63DSLJJicKVStQC4rMu4Im7weKis3u'),(18,'tu','Thammasat University@localhost.com','Thammasat University','$2y$10$JcuCwNJo.l0JEtYuTSxyk.beFPIytSXxZewDCAb712eznjr.D6SH6'),(19,'up','University of Phayao@localhost.com','University of Phayao','$2y$10$STQg8VWK3I8UXzcP8JGXTOYsL9BEDSy4jvtEbk97UHoz7i52gqTUW');
+/*!40000 ALTER TABLE `account_uni` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `login_token`
+--
+
+DROP TABLE IF EXISTS `login_token`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `login_token` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `fk_sid` varchar(13) NOT NULL,
+  `token` varchar(512) NOT NULL,
+  `expire` datetime NOT NULL,
+  `last_login` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `fk_sid` (`fk_sid`),
+  CONSTRAINT `login_token_ibfk_1` FOREIGN KEY (`fk_sid`) REFERENCES `account` (`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `login_token`
+--
+
+LOCK TABLES `login_token` WRITE;
+/*!40000 ALTER TABLE `login_token` DISABLE KEYS */;
+/*!40000 ALTER TABLE `login_token` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sport`
+--
+
+DROP TABLE IF EXISTS `sport`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sport` (
+  `id` varchar(4) NOT NULL,
+  `sport_name` varchar(255) NOT NULL,
+  `sport_type` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sport`
+--
+
+LOCK TABLES `sport` WRITE;
+/*!40000 ALTER TABLE `sport` DISABLE KEYS */;
+INSERT INTO `sport` VALUES ('1001','badminton','singles men'),('1002','badminton','singles women'),('1003','badminton','doubles men'),('1004','badminton','doubles women'),('1005','badminton','doubles mixed'),('1101','basketball','men'),('1102','basketball','women'),('1201','board game','a-math single'),('1202','board game','a-math double'),('1203','board game','crossword single'),('1204','board game','crossword double'),('1205','board game','thai chess'),('1301','e-sport','5 vs 5'),('1401','football','men'),('1402','footsol','men'),('1501','petong','singles men'),('1502','petong','singles women'),('1503','petong','doubles men'),('1504','petong','doubles women'),('1505','petong','doubles mixed'),('1601','rugby','men'),('1701','athletics','100M relay men'),('1702','athletics','100M relay women'),('1703','athletics','200M relay men'),('1704','athletics','200M relay women'),('1705','athletics','400M relay men'),('1706','athletics','400M relay women'),('1707','athletics','1X400M relay men'),('1708','athletics','1X400M relay women'),('1709','athletics','4X400M relay men'),('1710','athletics','4X400M relay women'),('1801','softball','men'),('1901','tabletennis','singles men'),('1902','tabletennis','singles women'),('1903','tabletennis','doubles men'),('1904','tabletennis','doubles women'),('2001','takro','men'),('2002','takro','women'),('2101','tennis','singles men'),('2102','tennis','singles women'),('2103','tennis','doubles men'),('2104','tennis','doubles women'),('2201','volleyball','men'),('2202','volleyball','women'),('2301','swimming','200M individual medley men'),('2302','swimming','200M individual medley women'),('2303','swimming','50M freestyle men'),('2304','swimming','50M freestyle women'),('2305','swimming','100M freestyle men'),('2306','swimming','100M freestyle women'),('2307','swimming','200M freestyle men'),('2308','swimming','200M freestyle women'),('2309','swimming','50M butterfly men'),('2310','swimming','50M butterfly women'),('2311','swimming','100M butterfly men'),('2312','swimming','100M butterfly women'),('2313','swimming','200M butterfly men'),('2314','swimming','200M butterfly women'),('2315','swimming','50M breaststroke men'),('2316','swimming','50M breaststroke women'),('2317','swimming','100M breaststroke men'),('2318','swimming','100M breaststroke women'),('2319','swimming','200M breaststroke men'),('2320','swimming','200M breaststroke women'),('2321','swimming','50M backstroke men'),('2322','swimming','50M backstroke women'),('2323','swimming','100M backstroke men'),('2324','swimming','100M backstroke women'),('2325','swimming','200M backstroke men'),('2326','swimming','200M backstroke women'),('2327','swimming','4X50M freestyle relay men'),('2328','swimming','4X50M freestyle relay women'),('2329','swimming','4X50M individual medley relay men'),('2330','swimming','4X50M individual medley relay women'),('2331','swimming','4X50M freestyle relay mixed'),('2332','swimming','4X50M individual medley relay mixed');
+/*!40000 ALTER TABLE `sport` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sport_player`
+--
+
+DROP TABLE IF EXISTS `sport_player`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sport_player` (
+  `fk_team_id` int(11) NOT NULL,
+  `fk_account_id` int(11) NOT NULL,
+  `fk_sport_id` varchar(4) NOT NULL,
+  KEY `fk_team_id` (`fk_team_id`),
+  KEY `fk_account_id` (`fk_account_id`),
+  KEY `fk_sport_id` (`fk_sport_id`),
+  CONSTRAINT `sport_player_ibfk_1` FOREIGN KEY (`fk_team_id`) REFERENCES `sport_team` (`id`),
+  CONSTRAINT `sport_player_ibfk_2` FOREIGN KEY (`fk_account_id`) REFERENCES `account` (`id`),
+  CONSTRAINT `sport_player_ibfk_3` FOREIGN KEY (`fk_sport_id`) REFERENCES `sport` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sport_player`
+--
+
+LOCK TABLES `sport_player` WRITE;
+/*!40000 ALTER TABLE `sport_player` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sport_player` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sport_team`
+--
+
+DROP TABLE IF EXISTS `sport_team`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sport_team` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `team_name` varchar(255) NOT NULL,
+  `fk_sport_id` varchar(4) NOT NULL,
+  `uni` varchar(7) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_sport_id` (`fk_sport_id`),
+  CONSTRAINT `sport_team_ibfk_1` FOREIGN KEY (`fk_sport_id`) REFERENCES `sport` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sport_team`
+--
+
+LOCK TABLES `sport_team` WRITE;
+/*!40000 ALTER TABLE `sport_team` DISABLE KEYS */;
+INSERT INTO `sport_team` VALUES (1,'A','1001','cmu');
+/*!40000 ALTER TABLE `sport_team` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'gearsport'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2019-06-18  4:24:08
