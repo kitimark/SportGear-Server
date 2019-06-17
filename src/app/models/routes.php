@@ -361,7 +361,9 @@ $app->group('/api/v1',function() use ($app){
                 $stmt->bindParam("email", $email);
                 $stmt->bindParam("hash", $hash);
                 $stmt->execute();
+                $id = $this->db->lastInsertId();
                 return $this->response->withJson(array(
+                    "id" => $id,
                     "sid" => $sid,
                     "uni" => $uni,
                     "fname" => $fname,
