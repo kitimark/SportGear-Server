@@ -422,15 +422,16 @@ $app->group('/api/v1',function() use ($app){
                         $token = array(
                             "iat" => $date->getTimestamp(),
                             "nbf" => $start_time,
-                            "exp" => $end_time
+                            "exp" => $end_time,
+                            "roles" => ['user']
                         );
                         $jwt = 'Bearer ' . JWT::encode($token, $key);
                         $this->response = $response->withAddedHeader('Authorization' , $jwt);
                         //encoded id and sid before return
                         return $this->response->withJson(array(
                             'message' => 'login complete! return id,sid',
-                            'id' => base64_encode($result[0]['id']),
-                            'sid' => base64_encode($result[0]['sid'])
+                            'id' => $result[0]['id'],
+                            'sid' => $result[0]['sid']
                         ));
                     }else{
                         return $this->response->withJson(array(

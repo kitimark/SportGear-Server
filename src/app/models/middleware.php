@@ -14,7 +14,7 @@ $app->add(new Tkhamez\Slim\RoleAuth\SecureRouteMiddleware(
     [
         // route pattern -> roles, first "starts-with" match is used
         '/secured/public' => ['any'],
-        '/secured'        => ['user'],
+        '/user'        => ['user'],
         '/api/v1/sport/list' => ['university'],
     ],
     ['redirect_url' => null] // optionally add "Location" header instead of 403 status code
