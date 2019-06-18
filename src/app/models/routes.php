@@ -267,7 +267,6 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
-        //get info from id (will change to token later)
         $app->post('/login',function(Request $request,Response $response){
             $params = $request->getParsedBody();
             if(empty($params['uni']) || empty($params['pwd'])){
@@ -293,7 +292,8 @@ $app->group('/api/v1',function() use ($app){
                         $token = array(
                             "iat" => $date->getTimestamp(),
                             "nbf" => $start_time,
-                            "exp" => $end_time
+                            "exp" => $end_time,
+                            "roles" => ['university']
                         );
                         $jwt = 'Bearer ' . JWT::encode($token, $key);
                         $this->response = $response->withAddedHeader('Authorization' , $jwt);

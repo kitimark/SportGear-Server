@@ -3,6 +3,7 @@ $config = [
     'settings' => [
         'displayErrorDetails' => true,
         'addContentLengthHeader' => false,
+        'determineRouteBeforeAppMiddleware' => true,
 
         'logger' => [
             'name' => 'slim-app',
