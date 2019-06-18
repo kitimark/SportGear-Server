@@ -15,6 +15,29 @@ $app->group('/api/v1',function() use ($app){
     /*
      */
     $app->group('/sport',function() use ($app){
+        $app->get('/id', function(Request $request,Response $response){
+            $params = $request->getQueryParams();
+            if(empty($params['team_name']) || empty($params['sport_id'] || empty($params['uni']))){
+                return $this->response->withStatus(400)
+                    ->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+            }
+            try{
+                $sql = "SELECT id FROM sport_team WHERE team_name=:team_name 
+                    AND fk_sport_id=:sport_id AND uni=:uni";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam("team_name",$params['team_name']);
+                $stmt->bindParam("sport_id",$params['sport_id']);
+                $stmt->bindParam("uni",$params['uni']);
+                $stmt->execute();
+                $result = $stmt->fetchAll();
+                return $this->response->withJson($result[0]);
+            }catch(PDOException $e){
+                $this->logger->addInfo($e);
+            }
+        });
         $app->group('/list',function() use ($app){
             $app->get('/info',function(Request $request,Response $response){
                 try{    
@@ -167,7 +190,9 @@ $app->group('/api/v1',function() use ($app){
                     $stmt->bindParam("sport_id",$params['sport_id']);
                     $stmt->bindParam("uni",$params['uni']);
                     $stmt->execute();
+                    $id = $this->db->lastInsertId();
                     return $this->response->withJson(array(
+                        'id' => $id,
                         'message' => 'Added team'
                     ));
                 }catch(PDOException $e){
@@ -317,15 +342,15 @@ $app->group('/api/v1',function() use ($app){
         //get info by id
         $app->get('/info',function(Request $request,Response $response){
             $args = $request->getQueryParams();
-            if(empty($args['id'])){
+            if(empty($args['sid'])){
                 return $this->response->withJson(array(
                     'message' => 'QueryParams not set!'
                 ));
             }
             try{
-                $sql = "SELECT * FROM account WHERE id = :id";
+                $sql = "SELECT * FROM account WHERE sid = :sid";
                 $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("id",$args['id']);
+                $stmt->bindParam("sid",$args['sid']);
                 $stmt->execute();
                 $info = $stmt->fetchAll();
                 if(count($info) != 0){
@@ -333,9 +358,8 @@ $app->group('/api/v1',function() use ($app){
                     $info[0]['details'] = $detail;
                     return $this->response->withJson($info);                   
                 }else{
-                    return $this->response->withJson(array(
-                        'message' => 'User not found!'
-                    ));
+                    // no user responses nothing
+                    return $this->response;
                 }
             }catch(PDOException $e){
                 $this->logger->addInfo($e);
@@ -362,7 +386,9 @@ $app->group('/api/v1',function() use ($app){
                 $stmt->bindParam("email", $email);
                 $stmt->bindParam("hash", $hash);
                 $stmt->execute();
+                $id = $this->db->lastInsertId();
                 return $this->response->withJson(array(
+                    "id" => $id,
                     "sid" => $sid,
                     "uni" => $uni,
                     "fname" => $fname,
