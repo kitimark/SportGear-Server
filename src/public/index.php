@@ -1,6 +1,4 @@
 <?php 
-header("Content-Type: application/json");
-//ini_set('display_errors', 1);
 if (PHP_SAPI == 'cli-server') {
     // To help the built-in PHP dev server, check if the request was actually for
     // something which should probably be served as a static file
@@ -17,9 +15,10 @@ set_error_handler(function ($severity, $message, $file, $line) {
         throw new \ErrorException($message, 0, $severity, $file, $line);
     }
 });
-
 require __DIR__ . '/../vendor/autoload.php';
 
+$dotenv = Dotenv\Dotenv::create(__DIR__.'/..');
+$dotenv->load();
 session_start();
 
 require __DIR__ . '/../app/models/config.php';
