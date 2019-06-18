@@ -10,7 +10,7 @@ CREATE TABLE account_uni(
 );
 
 CREATE TABLE account(
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id INT NOT NULL AUTO_INCREMENT ,
     sid VARCHAR(13) NOT NULL,
     uni VARCHAR(7) NOT NULL,
     fname VARCHAR(128) NOT NULL,
@@ -20,6 +20,7 @@ CREATE TABLE account(
     img_url text,
     details JSON,
     CHECK (JSON_VALID(details)),
+    PRIMARY KEY (id),
     UNIQUE KEY (email),
     UNIQUE KEY (sid),
     FOREIGN KEY (uni) REFERENCES account_uni(uni)

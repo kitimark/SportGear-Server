@@ -19,5 +19,14 @@ CREATE TABLE sport_player(
     fk_sport_id VARCHAR(4) NOT NULL,
     FOREIGN KEY (fk_team_id) REFERENCES sport_team(id),
     FOREIGN KEY (fk_account_id) REFERENCES account(id),
-    FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
+    PRIMARY KEY(fk_team_id,fk_account_id,fk_sport_id)
 );
+
+-- Import a sport.csv from https://docs.google.com/spreadsheets/d/1IndxQW0mAtXIVkYY5l504BtUyZYdfWthKbM3SRW1BXE/edit?usp=sharing
+LOAD DATA LOCAL INFILE  'sport.csv'
+INTO TABLE sport
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
