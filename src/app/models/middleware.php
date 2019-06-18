@@ -9,7 +9,7 @@ $app->add(new Tkhamez\Slim\RoleAuth\RoleMiddleware(
     ['route_pattern' => ['/api']] // optionally limit to these routes
 )); 
 
-
+//Not pass
 $app->add(new Tkhamez\Slim\RoleAuth\SecureRouteMiddleware(
     [
         // route pattern -> roles, first "starts-with" match is used
@@ -25,11 +25,16 @@ $app->add(new Tkhamez\Slim\RoleAuth\SecureRouteMiddleware(
 *    middleware for jwt HS512 algo
 *    Always use HTTPS for jwt.
 */
-
+//pass
 $app->add(new Tuupola\Middleware\JwtAuthentication([
     "path" => ["/api"],
-    "attribute" => "token",
+    "attribute" => "jwt",
     "ignore" => ["/api/v1/university/login"],
+    "before" => function ($request, $arguments) {
+        $jwt = $request->getAttribute("jwt");
+        $roles = $jwt['roles'];
+        return $request->withAttribute("roles", $roles);
+    },
     "secret" => $config['settings']['token']['key'],
     "error" => function ($response, $arguments) {
         $data["status"] = "error";
