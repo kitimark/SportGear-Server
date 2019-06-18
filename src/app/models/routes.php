@@ -190,7 +190,9 @@ $app->group('/api/v1',function() use ($app){
                     $stmt->bindParam("sport_id",$params['sport_id']);
                     $stmt->bindParam("uni",$params['uni']);
                     $stmt->execute();
+                    $id = $this->db->lastInsertId();
                     return $this->response->withJson(array(
+                        'id' => $id,
                         'message' => 'Added team'
                     ));
                 }catch(PDOException $e){
