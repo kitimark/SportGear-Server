@@ -15,6 +15,29 @@ $app->group('/api/v1',function() use ($app){
     /*
      */
     $app->group('/sport',function() use ($app){
+        $app->get('/id', function(Request $request,Response $response){
+            $params = $request->getQueryParams();
+            if(empty($params['team_name']) || empty($params['sport_id'] || empty($params['uni']))){
+                return $this->response->withStatus(400)
+                    ->withJson(array(
+                        'status' => 'error',
+                        'message' => 'QueryParams not set!'
+                    ));
+            }
+            try{
+                $sql = "SELECT id FROM sport_team WHERE team_name=:team_name 
+                    AND fk_sport_id=:sport_id AND uni=:uni";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam("team_name",$params['team_name']);
+                $stmt->bindParam("sport_id",$params['sport_id']);
+                $stmt->bindParam("uni",$params['uni']);
+                $stmt->execute();
+                $result = $stmt->fetchAll();
+                return $this->response->withJson($result[0]);
+            }catch(PDOException $e){
+                $this->logger->addInfo($e);
+            }
+        });
         $app->group('/list',function() use ($app){
             $app->get('/info',function(Request $request,Response $response){
                 try{    
