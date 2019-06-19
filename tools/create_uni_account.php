@@ -1,7 +1,7 @@
 <?php
 $uni = json_decode(file_get_contents(__DIR__.'/uni.json'),true);
 $keys = array_keys($uni);
-$mysqli = new mysqli("localhost", "root", "alonealoha5", "gearsport");
+$mysqli = new mysqli("localhost", "root", "", "gearsport");
 for($index = 0 ; $index < count($keys) - 1 ; $index++){
     $name = $uni[$keys[$index]];
     $email = $name . '@localhost.com';
