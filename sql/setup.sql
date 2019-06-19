@@ -5,6 +5,7 @@ DROP USER 'gearsport'@'localhost';
 CREATE USER 'gearsport'@'localhost' IDENTIFIED BY 'Z2VhcnNwb3J0';
 GRANT select,insert,update,delete ON gearsport.* TO 'gearsport'@'localhost';
 
+use gearsport
 
 CREATE TABLE account_uni(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -34,7 +35,8 @@ CREATE TABLE account(
 CREATE TABLE sport(
     id VARCHAR(4) NOT NULL PRIMARY KEY,
     sport_name VARCHAR(255) NOT NULL,
-    sport_type VARCHAR(255) NOT NULL
+    sport_type VARCHAR(255) NOT NULL,
+    UNIQUE KEY(sport_name,sport_type)
 );
 
 CREATE TABLE sport_team(
@@ -54,3 +56,10 @@ CREATE TABLE sport_player(
     FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
     PRIMARY KEY(fk_team_id,fk_account_id,fk_sport_id)
 );
+
+LOAD DATA LOCAL INFILE  'sport.csv'
+INTO TABLE sport
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
