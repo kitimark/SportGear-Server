@@ -1,4 +1,5 @@
 <?php
+use Slim\Http\UploadedFile;
 /**
  * Moves the uploaded file to the upload directory and assigns it a unique name
  * to avoid overwriting an existing uploaded file.

@@ -26,4 +26,4 @@ $container['db'] = function ($c) {
 
 
 // Uploaded Files
-$container['upload_directory'] = __DIR__ . '/uploads';
+$container['upload_directory'] = __DIR__ . '/../uploads';

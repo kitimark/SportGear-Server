@@ -1,4 +1,5 @@
 <?php
+use Slim\Http\UploadedFile;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT; // use for generate token
@@ -267,6 +268,29 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
+        $app->post('/upload/csv',function(Request $request,Response $response){
+            $directory = $this->get('upload_directory');
+            $uploadedFiles = $request->getUploadedFiles();
+            print_r($uploadedFiles);
+            if (empty($uploadedFiles['dummyPlayerList'])) {
+                throw new Exception('No file has been send');
+            }
+            $uploadedFile = $uploadedFiles['dummyPlayerList'];
+            print_r($uploadedFile);
+            if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
+                $filename = moveUploadedFile($directory, $uploadedFile);
+                $response->write('uploaded ' . $filename . '<br/>');
+            }
+            return $this->response->write(is_array($uploadedFiles));
+/* 
+            $allowed =  array('csv');
+            $filename = $_FILES['video_file']['name'];
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            if(!in_array($ext,$allowed) ) {
+                echo 'error';
+            }
+             */
+        });
         $app->post('/login',function(Request $request,Response $response){
             $params = $request->getParsedBody();
             if(empty($params['uni']) || empty($params['pwd'])){
