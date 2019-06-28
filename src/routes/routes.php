@@ -4,13 +4,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT; // use for generate token
 
-include 'fuc.php';
 
-$app->get('/routes',function(Request $request,Response $response){
-    return $this->response->withJson($this->allRoutes);
-});
-#GET INFOMATION
-//get info from id (will change to token later)
+use Gearserver\controller\dev;
+use Gearserver\controller\account;
+
+// dev
+$app->get('/routes',Gearserver\controller\dev::class . ':allRoutes');
 
 $app->group('/api/v1',function() use ($app){
     /*
@@ -282,7 +281,7 @@ $app->group('/api/v1',function() use ($app){
                 $response->write('uploaded ' . $filename . '<br/>');
             }
             return $this->response->write(is_array($uploadedFiles));
-/* 
+            /* 
             $allowed =  array('csv');
             $filename = $_FILES['video_file']['name'];
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -364,31 +363,7 @@ $app->group('/api/v1',function() use ($app){
 
         #GET
         //get info by id
-        $app->get('/info',function(Request $request,Response $response){
-            $args = $request->getQueryParams();
-            if(empty($args['sid'])){
-                return $this->response->withJson(array(
-                    'message' => 'QueryParams not set!'
-                ));
-            }
-            try{
-                $sql = "SELECT * FROM account WHERE sid = :sid";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("sid",$args['sid']);
-                $stmt->execute();
-                $info = $stmt->fetchAll();
-                if(count($info) != 0){
-                    $detail = empty($info[0]['details']) ? $info[0]['details'] : json_decode($info[0]['details'], true);
-                    $info[0]['details'] = $detail;
-                    return $this->response->withJson($info);                   
-                }else{
-                    // no user responses nothing
-                    return $this->response;
-                }
-            }catch(PDOException $e){
-                $this->logger->addInfo($e);
-            }
-        });
+        $app->get('/info', Gearserver\controller\account::class . ':info');
 
         #POST
         ##Add user

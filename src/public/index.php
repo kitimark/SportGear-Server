@@ -15,24 +15,21 @@ set_error_handler(function ($severity, $message, $file, $line) {
         throw new \ErrorException($message, 0, $severity, $file, $line);
     }
 });
+
 require __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::create(__DIR__.'/..');
 $dotenv->load();
+
 session_start();
 
-require __DIR__ . '/../app/models/config.php';
+require __DIR__ . '/../config/settings.php';
+
 $app = new \Slim\App($config);
 
-require __DIR__ . '/../app/models/dependencies.php';
-require __DIR__ . '/../app/models/middleware.php';
-require __DIR__ . '/../app/models/routes.php';
-$allRoutes = [];
-$routes = $container->router->getRoutes();
-foreach ($routes as $route) {
-  array_push($allRoutes, $route->getPattern());
-}
-$container['allRoutes'] = $allRoutes;
+require __DIR__ . '/../config/dependencies.php';
+require __DIR__ . '/../config/middleware.php';
+require __DIR__ . '/../routes/routes.php';
 
 
 $app->run();

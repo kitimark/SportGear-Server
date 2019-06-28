@@ -12,10 +12,10 @@ $config = [
         ],
 
         'db' => [
-            'host' => getenv('DbHost'),
-            'dbname' => getenv('DbName'),
-            'user' => getenv('DbUser'),
-            'pass' => getenv('DbPass')
+            'host' => getenv('DB_HOST'),
+            'dbname' => getenv('DB_NAME'),
+            'user' => getenv('DB_USER'),
+            'pass' => getenv('DB_PASSWORD')
         ],
         'token' =>[
             'key' => base64_encode(getenv('SECRET_KEY'))
