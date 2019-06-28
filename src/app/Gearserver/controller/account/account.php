@@ -22,7 +22,7 @@ class account{
         }
         try{
             $sql = "SELECT * FROM account WHERE sid = :sid";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid",$args['sid']);
             $stmt->execute();
             $info = $stmt->fetchAll();
@@ -36,6 +36,40 @@ class account{
             }
         }catch(PDOException $e){
             $this->container->logger->addInfo($e);
+        }
+    }
+
+    public function Adduser(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        $sid = $params['sid'];
+        $uni = $params['uni'];
+        $fname = $params['fname'];
+        $lname = $params['lname'];
+        $email = $params['email'];
+        $hash = password_hash($params['password'], PASSWORD_DEFAULT);
+        try{
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:hash)';
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam("sid", $sid);
+            $stmt->bindParam("uni",  $uni);
+            $stmt->bindParam("fname", $fname);
+            $stmt->bindParam("lname", $lname);
+            $stmt->bindParam("email", $email);
+            $stmt->bindParam("hash", $hash);
+            $stmt->execute();
+            $id = $this->db->lastInsertId();
+            return $response->withJson(array(
+                "id" => $id,
+                "sid" => $sid,
+                "uni" => $uni,
+                "fname" => $fname,
+                "lname" => $lname,
+                "email" => $email,
+                "pwd_hash" => $hash,
+        ));
+
+        }catch(PDOException $e){
+            $this->logger->addInfo($e);
         }
     }
     

@@ -1,0 +1,76 @@
+<?php
+namespace Gearserver\controller;
+
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use \Firebase\JWT\JWT;
+use \Datetime;
+
+
+class university{
+    
+    protected $container;
+
+    public function __construct(ContainerInterface $container) {
+        $this->container = $container;
+    }
+    private function JWTtoken(Request $request){
+        $ipAddress = $request->getAttribute('ip_address');
+        $date = new DateTime();
+        $start_time = $date->getTimestamp();
+        $end_time = $start_time + 3600;
+        $settings = $this->container->get('settings')['token'];
+        $key = $settings['key'];
+        $token = array(
+            "iat" => $date->getTimestamp(),
+            "nbf" => $start_time,
+            "exp" => $end_time,
+            "roles" => ['university'],
+            "ip" => $ipAddress
+        );
+        $jwt = 'Bearer ' . JWT::encode($token, $key);
+        return $jwt;
+    }
+    public function Login(Request $request,Response $response){
+        
+        $params = $request->getParsedBody();
+
+        if(empty($params['uni']) || empty($params['pwd'])){
+            return $response->withJson(array(
+                'status' => 'error',
+                'message' => 'QueryParams not set!'
+            ))->withStatus(401);
+        }
+
+        try{
+            $sql = "SELECT id,uni,uni_full_name,uni_pwd FROM account_uni WHERE uni = :uni";
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni",$params['uni']);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            if(count($result) > 0){
+                if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
+                    $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
+                    return $this->response->withJson(array(
+                        'message' => 'login complete!',
+                        'id' => $result[0]['id'],
+                        'uni' => $result[0]['uni'],
+                        'fullname' => $result[0]['uni_full_name']
+                    ));
+                }else{
+                    return $response->withJson(array(
+                        'message' => 'password not match'
+                    ))->withStatus(401);
+                }  
+            }else{
+                return $response->withJson(array(
+                    'message' => 'User not found!'
+                ))->withStatus(401);
+            }
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
+}
