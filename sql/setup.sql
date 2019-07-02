@@ -44,6 +44,8 @@ CREATE TABLE sport_team(
     team_name VARCHAR(255) NOT NULL,
     fk_sport_id VARCHAR(4) NOT NULL,
     uni VARCHAR(7) NOT NULL,
+    ts TIMESTAMP NOT NULL,
+
     FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
 );
 

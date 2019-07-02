@@ -1,21 +1,19 @@
 <?php
-use Slim\Http\UploadedFile;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Message\ResponseInterface as Response;
- // use for generate token
-
 
 use Gearserver\controller\dev;
 use Gearserver\controller\account;
 use Gearserver\controller\university;
+use Gearserver\controller\sport;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+
 // dev
 $app->get('/routes',Gearserver\controller\dev::class . ':allRoutes');
 // add user for testing
 $app->post('/user/test/add',Gearserver\controller\dev::class . ':devAdduser');
 
 $app->group('/api/v1',function() use ($app){
-    /*
-     */
     $app->group('/sport',function() use ($app){
         $app->get('/id', function(Request $request,Response $response){
             $params = $request->getQueryParams();
@@ -41,46 +39,8 @@ $app->group('/api/v1',function() use ($app){
             }
         });
         $app->group('/list',function() use ($app){
-            $app->get('/info',function(Request $request,Response $response){
-                try{    
-                    $sql = "SELECT * FROM sport";
-                    $stmt = $this->db->prepare($sql);
-                    $stmt->execute();
-                    $result = $stmt->fetchall();
-                    return $this->response->withJson($result);
-                }catch(PDOException $e){
-                    $this->logger->addInfo($e);
-                }
-            });
-            $app->get('/teamidBytype',function(Request $request,Response $response){
-                $params = $request->getQueryParams();
-                if(empty($params['type']) || empty($params['uni'])){
-                    return $this->response->withJson(array(
-                        'status' => 'error',
-                        'message' => 'QueryParams not set!'
-                    ));
-                }
-                try{
-                    $sql = "SELECT sport_team.id as sport_id ,account.id
-                    FROM account
-                    JOIN sport_player
-                    ON account.id = sport_player.fk_account_id
-                    JOIN sport_team
-                    ON sport_team.id = sport_player.fk_team_id
-                    JOIN sport
-                    ON sport.id = sport_team.fk_sport_id
-                    WHERE sport_team.uni = :uni AND sport_player.fk_sport_id = :id
-                    ";
-                    $stmt = $this->db->prepare($sql);
-                    $stmt->bindParam("uni",$params['uni']);
-                    $stmt->bindParam("id",$params['type']);
-                    $stmt->execute();
-                    $result = $stmt->fetchAll(PDO::FETCH_GROUP);
-                    return $this->response->withJson($result);
-                }catch(PDOException $e){
-                    $this->logger->addInfo($e);
-                }
-            });
+            $app->get('/info',Gearserver\controller\sport::class . ':ListSport');
+            $app->get('/teamidBytype',Gearserver\controller\sport::class . ':TeamIDByType');
             $app->get('/teamByuniversity',function(Request $request,Response $response){
                 $params = $request->getQueryParams();
                 if(empty($params['uni'])){
@@ -115,9 +75,7 @@ $app->group('/api/v1',function() use ($app){
                         'message' => 'QueryParams not set!'
                     ));
                 }
-                //TODO
                 try{
-                    //
                     $sql = "SELECT sport.id as sport_id,sport_team.team_name,sport_team.id as team_id,account.id,account.sid,account.fname,account.lname
                     FROM account
                     JOIN sport_player
@@ -322,6 +280,7 @@ $app->group('/api/v1',function() use ($app){
         $app->get('/info', Gearserver\controller\account::class . ':info');
         $app->post('',Gearserver\controller\account::class . ':Adduser');
         //login the user
+        /*
         $app->post('/login',function(Request $request,Response $response){
             $params = $request->getParsedBody();
             try{
@@ -366,6 +325,7 @@ $app->group('/api/v1',function() use ($app){
                 $this->logger->addInfo($e); 
             }
         });
+        */
         #PATCH
         # UPDATE PICTURE
         //user update info by id (will change to token later)

@@ -32,6 +32,35 @@ class university{
         $jwt = 'Bearer ' . JWT::encode($token, $key);
         return $jwt;
     }
+
+    #@parmas uni 
+    #return sid and info
+    public function Info(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        if(empty($params['uni'])){
+            return $response->withJson(array(
+                'status' => 'error',
+                'message' => 'QueryParams not set!'
+            ))->withStatus(403);
+        }
+
+        try{
+            $sql = "SELECT sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni",$params['uni']);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            for($index = 0 ; $index < count($result);$index++){
+                $detail = json_decode($result[$index]['details'], true);
+                $result[$index]['details'] = $detail;
+            }
+            return $response->withJson($result);
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
+
     public function Login(Request $request,Response $response){
         
         $params = $request->getParsedBody();
@@ -73,4 +102,6 @@ class university{
             return $response->withStatus(401);
         }
     }
+
+
 }
