@@ -27,6 +27,8 @@ services:
         image: mariadb
         ports:
             - '3306:3306'
+        volumes:
+            - ./setup.sql:./sql/setup.sql
         environment:
             - MYSQL_ROOT_PASSWORD=1234
 
