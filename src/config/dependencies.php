@@ -4,7 +4,7 @@ use Gearserver as gs;
 
 // DIC configuration
 $container = $app->getContainer();
-$controller = new gs($container);
+$controller = new gs\controller($container);
 
 // monolog
 $container['logger'] = function ($c) {
