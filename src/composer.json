@@ -19,10 +19,10 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "composer dump-autoload"
+            "composer dump-autoload -o"
         ],
         "post-update-cmd": [
-            "composer dump-autoload"
+            "composer dump-autoload -o"
         ]
     }
 }
