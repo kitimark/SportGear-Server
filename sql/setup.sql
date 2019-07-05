@@ -1,11 +1,8 @@
---ALLINONE INIT
-DROP DATABASE gearsport;
-CREATE DATABASE gearsport;
-DROP USER 'gearsport'@'localhost';
+CREATE DATABASE IF NOT EXISTS gearsport;
 CREATE USER 'gearsport'@'localhost' IDENTIFIED BY 'Z2VhcnNwb3J0';
 GRANT select,insert,update,delete ON gearsport.* TO 'gearsport'@'localhost';
 
-use gearsport
+use gearsport;
 
 CREATE TABLE account_uni(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
