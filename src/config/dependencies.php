@@ -1,10 +1,10 @@
 <?php
 
-use Gearserver as gs;
+use Gearserver;
 
 // DIC configuration
 $container = $app->getContainer();
-$controller = new gs\controller($container);
+$controller = new Gearserver\controller($container);
 
 // monolog
 $container['logger'] = function ($c) {
