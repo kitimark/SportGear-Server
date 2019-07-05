@@ -20,6 +20,7 @@ class dev{
             array_push($allRoutes, $route->getPattern());
         }
         return $response->withJson($allRoutes);
+        //return $response->write(print_r($allRoutes));
     }
     public function devAdduser(Request $request,Response $response){
         # @params = email

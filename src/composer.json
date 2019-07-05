@@ -1,4 +1,6 @@
 {
+    "name" : "gearsport-api",
+    "description": "api",
     "require": {
         "slim/slim": "^3.12",
         "slim/csrf": "^0.8.3",
@@ -16,13 +18,5 @@
         "psr-4": {
             "Gearserver\\": "app/Gearserver/"
         }
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "composer dump-autoload -o"
-        ],
-        "post-update-cmd": [
-            "composer dump-autoload -o"
-        ]
     }
 }
