@@ -16,5 +16,13 @@
         "psr-4": {
             "Gearserver\\": "app/Gearserver/"
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "composer dump-autoload"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload"
+        ]
     }
 }
