@@ -11,7 +11,11 @@ services:
         # networks:
         #     - code-network
     php:
-        image: php:7.3.6-fpm
+        build:
+            context: ./src
+            dockerfile: Dockerfile
+        container_name: php
+        # command: docker-php-ext-install pdo pdo_mysql pdo_pgsql
         volumes:
             - ./src:/app
         # networks:
