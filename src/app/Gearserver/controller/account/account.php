@@ -32,7 +32,7 @@ class account{
                 return $response->withJson($info);                   
             }else{
                 // no user responses nothing
-                return $response->withStatus(401);
+                return $response->withStatus(204);
             }
         }catch(PDOException $e){
             $this->container->logger->addInfo($e);
