@@ -49,7 +49,7 @@ class account{
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
             $sql = 'INSERT INTO account(sid,uni,fname,lname,email,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:hash)';
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
             $stmt->bindParam("fname", $fname);
@@ -57,7 +57,7 @@ class account{
             $stmt->bindParam("email", $email);
             $stmt->bindParam("hash", $hash);
             $stmt->execute();
-            $id = $this->db->lastInsertId();
+            $id = $this->container->db->lastInsertId();
             return $response->withJson(array(
                 "id" => $id,
                 "sid" => $sid,
