@@ -33,7 +33,11 @@ $app->group('/api/v1',function() use ($app){
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
                 $result = $stmt->fetchAll();
-                return $this->response->withJson($result[0]);
+                if (count($result) != 0){
+                    return $this->response->withJson($result[0]);
+                }else{
+                    return $this->response->withStatus(204);
+                }
             }catch(PDOException $e){
                 $this->logger->addInfo($e);
             }
