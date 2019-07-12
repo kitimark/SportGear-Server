@@ -185,7 +185,7 @@ $app->group('/api/v1',function() use ($app){
                     }
                 }
             });
-            $app->patch('/addPlayer',function(Request $request , Response $response){
+            $app->post('/patchPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
