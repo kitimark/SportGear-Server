@@ -4,6 +4,8 @@ namespace Gearserver\controller;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class dev{
     
@@ -13,6 +15,46 @@ class dev{
         $this->container = $container;
     }
 
+    public function sentMail(Request $request,Response $response){
+        // Instantiation and passing `true` enables exceptions
+        $mail = new PHPMailer(true);
+
+        try {
+            //Server settings
+            $mail->SMTPDebug = 2;                                       // Enable verbose debug output
+            $mail->isSMTP();                                            // Set mailer to use SMTP
+            $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+            $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+            $mail->Username   = 'geargame30@eng.cmu.ac.th';                     // SMTP username
+            $mail->Password   = 'geargame30';                               // SMTP password
+            $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+            $mail->Port       = 587;                                    // TCP port to connect to
+
+            //Recipients
+            $mail->setFrom('geargame30@eng.cmu.ac.th', 'Mailer');
+            $mail->addAddress('alonereview@gmail.com', 'Tester');     // Add a recipient
+            //$mail->addAddress('ellen@example.com');               // Name is optional
+            //$mail->addReplyTo('info@example.com', 'Information');
+            //$mail->addCC('cc@example.com');
+            //$mail->addBCC('bcc@example.com');
+
+            // Attachments
+            //$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+            //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+
+            // Content
+            $mail->isHTML(true);                                  // Set email format to HTML
+            $mail->Subject = 'Here is the subject';
+            $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+            $mail->send();
+            return $response->write('Message has been sent');
+        } catch (Exception $e) {
+            //return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+            $response->withJson($mail->ErrorInfo);
+        }
+    }
     public function allRoutes(Request $request,Response $response){
         $allRoutes = [];
         $routes = $this->container->router->getRoutes();

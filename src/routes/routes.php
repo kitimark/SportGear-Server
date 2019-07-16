@@ -10,6 +10,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 // dev
 $app->get('/routes',Gearserver\controller\dev::class . ':allRoutes');
+// send a mail
+$app->post('/mail',Gearserver\controller\dev::class . ':sentMail');
 // add user for testing
 $app->post('/user/test/add',Gearserver\controller\dev::class . ':devAdduser');
 
