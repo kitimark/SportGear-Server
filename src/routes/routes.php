@@ -33,7 +33,11 @@ $app->group('/api/v1',function() use ($app){
                 $stmt->bindParam("uni",$params['uni']);
                 $stmt->execute();
                 $result = $stmt->fetchAll();
-                return $this->response->withJson($result[0]);
+                if (count($result) != 0){
+                    return $this->response->withJson($result[0]);
+                }else{
+                    return $this->response->withStatus(204);
+                }
             }catch(PDOException $e){
                 $this->logger->addInfo($e);
             }
@@ -181,7 +185,7 @@ $app->group('/api/v1',function() use ($app){
                     }
                 }
             });
-            $app->patch('/addPlayer',function(Request $request , Response $response){
+            $app->post('/patchPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
@@ -227,6 +231,23 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
+        $app->group('/{uni}', function() use ($app){
+            $app->get('/sid', function(Request $request, Response $response, $args){
+                try{
+                    $sql = "SELECT sid FROM account WHERE uni=:uni";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",$args['uni']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    $result = array_map(function($data){
+                        return $data['sid'];
+                    }, $result);
+                    return $this->response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+            });
+        });
         $app->post('/login',Gearserver\controller\university::class . ':Login');
         /*
 
