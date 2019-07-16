@@ -14,8 +14,30 @@ class dev{
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
     }
-
+    public function sentMail_db($uni){
+        try{
+            $sql = 'SELECT email,uni_pwd FROM account_uni WHERE uni=:uni';
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam("uni",  $uni);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            if(count($result) === 0){
+                //TODO
+                //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
+                $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,email,uni_full_name,uni_pwd)';
+                $stmt->bindParam("uni",$uni);
+            }else{
+                return $result;
+            }
+        }catch(PDOException $e){
+            $this->logger->addInfo($e);
+            return false;
+        }
+    }
     public function sentMail(Request $request,Response $response){
+        if(sentMail === false){
+            return $response->withStatus(403);
+        }
         // Instantiation and passing `true` enables exceptions
         $mail = new PHPMailer(true);
 
@@ -52,7 +74,8 @@ class dev{
             return $response->write('Message has been sent');
         } catch (Exception $e) {
             //return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
-            $response->withJson($mail->ErrorInfo);
+            $this->logger->addInfo($e);
+            return $response->withJson($mail->ErrorInfo)->withStatus(403);
         }
     }
     public function allRoutes(Request $request,Response $response){
