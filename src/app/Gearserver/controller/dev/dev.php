@@ -24,8 +24,22 @@ class dev{
             if(count($result) === 0){
                 //TODO
                 //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
-                $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,email,uni_full_name,uni_pwd)';
+                $json = file_get_contents("");
+                /*
+                {
+                    "cmu":{
+                        "email":"geargame30@eng.cmu.ac.th",
+                        "name":"Chiang Mai University",
+                    }
+                }
+                */
+                $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+                $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
                 $stmt->bindParam("uni",$uni);
+                $stmt->bindParam("email",$email);
+                $stmt->bindParam("uni_full_name",$uni_full_name);
+                $stmt->bindParam("uni_pwd",$pwd);
+
             }else{
                 return $result;
             }
@@ -35,9 +49,11 @@ class dev{
         }
     }
     public function sentMail(Request $request,Response $response){
+
         if(sentMail === false){
             return $response->withStatus(403);
         }
+        
         // Instantiation and passing `true` enables exceptions
         $mail = new PHPMailer(true);
 
@@ -73,9 +89,9 @@ class dev{
             $mail->send();
             return $response->write('Message has been sent');
         } catch (Exception $e) {
-            //return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
             $this->logger->addInfo($e);
-            return $response->withJson($mail->ErrorInfo)->withStatus(403);
+            return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+            //return $response->withJson($mail->ErrorInfo)->withStatus(403);
         }
     }
     public function allRoutes(Request $request,Response $response){
