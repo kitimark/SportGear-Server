@@ -103,10 +103,9 @@ class university{
         }
     }
 
-    public function PasswordChange(Request $request,Response $response){
+    public function PasswordChange(Request $request,Response $response,$args){
         //uni get from api/{uni}/passwordchange
-        $route = $request->getAttribute('route');
-        $uni = $route->getArgument('uni');
+        $uni = $args['uni'];
         $params = $request->getParsedBody();
         $old_password = $params['old_password'];
         $password = $params['password'];
@@ -114,7 +113,7 @@ class university{
         try{
             $sql = "SELECT uni_pwd FROM account_uni WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$params['uni']);
+            $stmt->bindParam("uni",$uni);
             $stmt->execute();
             $result = $stmt->fetchAll();
             if(password_verify($old_password,$result[0]['uni_pwd']) && $password === $confirm_password){
