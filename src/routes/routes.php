@@ -234,6 +234,7 @@ $app->group('/api/v1',function() use ($app){
     });
     $app->group('/university',function() use ($app){
         $app->group('/{uni}', function() use ($app){
+            $app->post('/password_change',Gearserver\controller\university::class . ':PasswordChange');
             $app->get('/sid', function(Request $request, Response $response, $args){
                 try{
                     $sql = "SELECT sid FROM account WHERE uni=:uni";
