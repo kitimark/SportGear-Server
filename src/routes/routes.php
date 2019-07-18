@@ -231,6 +231,9 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
+        $app->group('/users' ,function() use($app){
+            $app->get('/info', Gearserver\controller\university::class . ':Info');
+        });
         $app->group('/{uni}', function() use ($app){
             $app->get('/sid', function(Request $request, Response $response, $args){
                 try{
