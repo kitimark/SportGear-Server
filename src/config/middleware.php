@@ -30,12 +30,11 @@ $app->add(new Tuupola\Middleware\JwtAuthentication([
     "path" => ["/api"],
     "attribute" => "jwt",
     "ignore" => ["/api/v1/university/login"],
-    // this code not working
-    // "before" => function ($request, $arguments) {
-    //     $jwt = $request->getAttribute("jwt");
-    //     $roles = $jwt['roles'];
-    //     return $request->withAttribute("roles", $roles);//send a roles to next middleware
-    // },
+    "before" => function ($request, $arguments) {
+        $jwt = $request->getAttribute("jwt");
+        $roles = $jwt['roles'];
+        return $request->withAttribute("roles", $roles);//send a roles to next middleware
+    },
     "secret" => $config['settings']['token']['key'],
     "error" => function ($response, $arguments) {
         $data["status"] = "error";
