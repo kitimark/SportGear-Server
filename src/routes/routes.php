@@ -216,12 +216,30 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/patchPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
+
+                // check permission of university
+                try{
+                    $sql = "SELECT uni FROM sport_team WHERE id=:id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("id", $params['team_id']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    if ($result[0]['uni'] != $decoded['uni']){
+                        return $response->withStatus(403)
+                                        ->withJson(array("message" => "permission denied"));
+                    }
+                    return $response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+
                 try{
                     $sql = "DELETE FROM sport_player WHERE fk_team_id = :team_id";
                     $stmt = $this->db->prepare($sql);
