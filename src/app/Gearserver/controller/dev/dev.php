@@ -16,7 +16,7 @@ class dev{
     }
     public function sentMail_db($uni){
         try{
-            $sql = 'SELECT email,uni_pwd FROM account_uni WHERE uni=:uni';
+            $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam("uni",  $uni);
             $stmt->execute();
@@ -39,6 +39,18 @@ class dev{
                 $stmt->bindParam("email",$email);
                 $stmt->bindParam("uni_full_name",$uni_full_name);
                 $stmt->bindParam("uni_pwd",$pwd);
+                $stmt->execute();
+                try{
+                    $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("uni",  $uni);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    return $result;
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                    return false;
+                }
 
             }else{
                 return $result;
@@ -49,8 +61,12 @@ class dev{
         }
     }
     public function sentMail(Request $request,Response $response){
-
-        if(sentMail === false){
+        $params = $request->getParsedBody();
+        if(empty($params['uni'])){
+            return $response->withStatus(403);
+        }
+        $info = sentMail_db($params['uni']);
+        if($info === false){
             return $response->withStatus(403);
         }
         
@@ -70,21 +86,21 @@ class dev{
 
             //Recipients
             $mail->setFrom('geargame30@eng.cmu.ac.th', 'Mailer');
-            $mail->addAddress('alonereview@gmail.com', 'Tester');     // Add a recipient
+            $mail->addAddress($info['email'], $info['uni_full_name']);     // Add a recipient
             //$mail->addAddress('ellen@example.com');               // Name is optional
             //$mail->addReplyTo('info@example.com', 'Information');
             //$mail->addCC('cc@example.com');
             //$mail->addBCC('bcc@example.com');
 
             // Attachments
-            //$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+            $mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
             //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
 
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
-            $mail->Subject = 'Here is the subject';
+            $mail->Subject = 'Geargame 30 - Username and Password for ' + $info['uni_full_name'];
             $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
             $mail->send();
             return $response->write('Message has been sent');
