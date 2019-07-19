@@ -112,7 +112,8 @@ $app->group('/api/v1',function() use ($app){
                 // type = 1001
                 // uni = cmu
                 $params = $request->getQueryParams();
-                if(empty($params['type']) || empty($params['uni']) || empty($params['team_id'])){
+                $decoded = $request->getAttribute('jwt');
+                if(empty($params['type']) || empty($decoded['uni']) || empty($params['team_id'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
@@ -128,7 +129,7 @@ $app->group('/api/v1',function() use ($app){
                     WHERE account.uni = :uni AND sport_player.fk_sport_id = :id AND sport_player.fk_team_id = :teamid
                     ";
                     $stmt = $this->db->prepare($sql);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->bindParam("id",$params['type']);
                     $stmt->bindParam("teamid",$params['team_id']);
                     $stmt->execute();
