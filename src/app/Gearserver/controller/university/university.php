@@ -20,6 +20,7 @@ class university{
         $date = new DateTime();
         $start_time = $date->getTimestamp();
         $end_time = $start_time + 3600;
+        $uni = $request->getParsedBody()['uni'];
         $settings = $this->container->get('settings')['token'];
         $key = $settings['key'];
         $token = array(
@@ -27,6 +28,7 @@ class university{
             "nbf" => $start_time,
             "exp" => $end_time,
             "roles" => ['university'],
+            "uni" => $uni,
             "ip" => $ipAddress
         );
         $jwt = 'Bearer ' . JWT::encode($token, $key);
