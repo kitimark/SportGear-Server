@@ -135,6 +135,15 @@ $app->group('/api/v1',function() use ($app){
                     $stmt->bindParam("teamid",$params['team_id']);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
+                    $result = array_map(function($data){
+                        return array(
+                            "id" => $data['account_id'],
+                            "firstName" => $data['fname'],
+                            "lastName" => $data['lname'],
+                            "sid" => $data['sid'],
+                            "team_id" => $data['team_id']
+                        );
+                    }, $result);
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);                    
