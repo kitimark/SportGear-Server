@@ -15,6 +15,7 @@ class dev{
         $this->container = $container;
     }
     public function sentMail_db($uni){
+        $file_url = '';
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
             $stmt = $this->db->prepare($sql);
@@ -24,7 +25,7 @@ class dev{
             if(count($result) === 0){
                 //TODO
                 //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
-                $json = file_get_contents("");
+                $json = file_get_contents($file_url);//load from url
                 /*
                 {
                     "cmu":{
@@ -33,6 +34,14 @@ class dev{
                     }
                 }
                 */
+
+                $data = json_decode($json,true);
+                if(!array_key_exists($uni, $data)){
+                    return false;
+                }
+                $email = $data[$uni]['email'];
+                $uni_full_name = $data[$uni]['name'];
+                
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                 $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
                 $stmt->bindParam("uni",$uni);
@@ -62,6 +71,7 @@ class dev{
     }
     public function sentMail(Request $request,Response $response){
         $params = $request->getParsedBody();
+        $file_url = '';
         if(empty($params['uni'])){
             return $response->withStatus(403);
         }
@@ -93,7 +103,8 @@ class dev{
             //$mail->addBCC('bcc@example.com');
 
             // Attachments
-            $mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+            $mail->addStringAttachment(file_get_contents($file_url), 'account');
+            //$mail->addAttachment('');         // Add attachments
             //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
 
             // Content
@@ -106,7 +117,7 @@ class dev{
             return $response->write('Message has been sent');
         } catch (Exception $e) {
             $this->logger->addInfo($e);
-            return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+            return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}")->withStatus(403);
             //return $response->withJson($mail->ErrorInfo)->withStatus(403);
         }
     }
