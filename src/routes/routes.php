@@ -151,8 +151,9 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/addTeam',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 //$this->logger->addInfo(print_r($params));
-                if(empty($params['team_name']) || empty($params['sport_id']) || empty($params['uni'])){
+                if(empty($params['team_name']) || empty($params['sport_id']) || empty($decoded['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
@@ -163,7 +164,7 @@ $app->group('/api/v1',function() use ($app){
                     $stmt = $this->db->prepare($sql);
                     $stmt->bindParam("team_name",$params['team_name']);
                     $stmt->bindParam("sport_id",$params['sport_id']);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->execute();
                     $id = $this->db->lastInsertId();
                     return $this->response->withJson(array(
@@ -177,12 +178,29 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/addPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
+                // check permission of university
+                try{
+                    $sql = "SELECT uni FROM sport_team WHERE id=:id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("id", $params['team_id']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    if ($result[0]['uni'] != $decoded['uni']){
+                        return $response->withStatus(403)
+                                        ->withJson(array("message" => "permission denied"));
+                    }
+                    return $response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+
                 for($index = 0 ; $index < count($params['account_id']);$index++){
                     try{
                         $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
