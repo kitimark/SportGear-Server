@@ -17,7 +17,8 @@ $app->group('/api/v1',function() use ($app){
     $app->group('/sport',function() use ($app){
         $app->get('/id', function(Request $request,Response $response){
             $params = $request->getQueryParams();
-            if(empty($params['team_name']) || empty($params['sport_id'] || empty($params['uni']))){
+            $decoded = $request->getAttribute('jwt');
+            if(empty($params['team_name']) || empty($params['sport_id'] || empty($decoded['uni']))){
                 return $this->response->withStatus(400)
                     ->withJson(array(
                         'status' => 'error',
@@ -30,7 +31,7 @@ $app->group('/api/v1',function() use ($app){
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("team_name",$params['team_name']);
                 $stmt->bindParam("sport_id",$params['sport_id']);
-                $stmt->bindParam("uni",$params['uni']);
+                $stmt->bindParam("uni",$decoded['uni']);
                 $stmt->execute();
                 $result = $stmt->fetchAll();
                 if (count($result) != 0){
