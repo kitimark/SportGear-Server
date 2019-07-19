@@ -41,7 +41,9 @@ class dev{
                 }
                 $email = $data[$uni]['email'];
                 $uni_full_name = $data[$uni]['name'];
-                
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return false;
+                }
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                 $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
                 $stmt->bindParam("uni",$uni);
