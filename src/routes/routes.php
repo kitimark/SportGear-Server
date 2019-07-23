@@ -10,6 +10,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 // dev
 $app->get('/routes',Gearserver\controller\dev::class . ':allRoutes');
+// send a mail
+$app->post('/mail',Gearserver\controller\dev::class . ':sentMail');
 // add user for testing
 $app->post('/user/test/add',Gearserver\controller\dev::class . ':devAdduser');
 
@@ -282,6 +284,7 @@ $app->group('/api/v1',function() use ($app){
             $app->get('/info', Gearserver\controller\university::class . ':Info');
         });
         $app->group('/{uni}', function() use ($app){
+            $app->post('/password_change',Gearserver\controller\university::class . ':PasswordChange');
             $app->get('/sid', function(Request $request, Response $response, $args){
                 try{
                     $sql = "SELECT sid FROM account WHERE uni=:uni";
