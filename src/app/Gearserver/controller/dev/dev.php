@@ -14,11 +14,11 @@ class dev{
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
     }
-    public function sentMail_db($uni){
-        $file_url = '';
+    protected function sentMail_db($uni){
+        $file_url = __DIR__ . '/uniMap.json';
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("uni",  $uni);
             $stmt->execute();
             $result = $stmt->fetchAll();
@@ -26,6 +26,7 @@ class dev{
                 //TODO
                 //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
                 $json = file_get_contents($file_url);//load from url
+                
                 /*
                 {
                     "cmu":{
@@ -46,6 +47,7 @@ class dev{
                 }
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                 $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
+                $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("uni",$uni);
                 $stmt->bindParam("email",$email);
                 $stmt->bindParam("uni_full_name",$uni_full_name);
@@ -53,7 +55,7 @@ class dev{
                 $stmt->execute();
                 try{
                     $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
-                    $stmt = $this->db->prepare($sql);
+                    $stmt = $this->container->db->prepare($sql);
                     $stmt->bindParam("uni",  $uni);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
@@ -77,7 +79,7 @@ class dev{
         if(empty($params['uni'])){
             return $response->withStatus(403);
         }
-        $info = sentMail_db($params['uni']);
+        $info = $this->sentMail_db($params['uni']);
         if($info === false){
             return $response->withStatus(403);
         }
@@ -97,21 +99,21 @@ class dev{
             $mail->Port       = 587;                                    // TCP port to connect to
 
             //Recipients
-            $mail->setFrom('geargame30@eng.cmu.ac.th', 'Mailer');
-            $mail->addAddress($info['email'], $info['uni_full_name']);     // Add a recipient
+            $mail->setFrom('geargame30@eng.cmu.ac.th', 'Geargame30');
+            $mail->addAddress($info[0]['email'], $info[0]['uni_full_name']);     // Add a recipient
             //$mail->addAddress('ellen@example.com');               // Name is optional
             //$mail->addReplyTo('info@example.com', 'Information');
             //$mail->addCC('cc@example.com');
             //$mail->addBCC('bcc@example.com');
 
             // Attachments
-            $mail->addStringAttachment(file_get_contents($file_url), 'account');
+            //$mail->addStringAttachment(file_get_contents($file_url), 'account');
             //$mail->addAttachment('');         // Add attachments
             //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
 
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
-            $mail->Subject = 'Geargame 30 - Username and Password for ' + $info['uni_full_name'];
+            $mail->Subject = 'Geargame 30 - Username and Password for ' . $info[0]['uni_full_name'];
             $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
             //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
