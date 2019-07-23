@@ -105,6 +105,7 @@ class dev{
 
         try {
             //Server settings
+            $mail->CharSet = "utf-8";
             $mail->SMTPDebug = 0;                                       // Enable verbose debug output
             $mail->isSMTP();                                            // Set mailer to use SMTP
             $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers
@@ -130,7 +131,11 @@ class dev{
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
             $mail->Subject = 'Geargame 30 - Username and Password for ' . $info[0]['uni_full_name'];
-            $mail->Body    = 'Username : ' . $info[0]['uni'] . "<br>Password : " . $info[0]['uni_pwd'];
+            $mail->Body = '<html><head><style>* { margin:0;padding:0;}* { font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; }
+            </style><meta name="viewport" content="width=device-width" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body bgcolor="#FFFFFF">
+            <table" bgcolor="#fff"><tr><td></td><td><div><table bgcolor="#fff"><tr><td><img style="height: 60px" src="https://drive.google.com/uc?export=view&id=1vBPAbRqHsZ-mS1Ybr82rACKm6DDDZOlK" /></td>
+            <td align="right"><h6>Geargame30</h6></td></tr></table></div></td><td></td></tr></table><table><tr><td></td><td" bgcolor="#FFFFFF"><div><table><tr><td><h3>การเข้าใช้งานระบบลงทะเบียน</h3><p>USERNAME & PASSWORD สำหรับการเข้าสู้ระบบลงทะเบียน Geargame30 ณ คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเชียงใหม่ ในวันที่ 23 - 28 ธันวาคม 2561</p>
+            <p>USERNAME : ' . $info[0]['uni'] . '<br>PASSWORD : ' . $info[0]['uni_pwd'] . '<br></p><a href="geargame30.eng.cmu.ac.th/log-in">เข้าสู้เว็บไซต์</a></td></tr></table></div></td><td></td></tr></table></body></html>';
             $mail->AltBody = 'Username : ' . $info[0]['uni'] . " Password : " . $info[0]['uni_pwd'];
 
             $mail->send();
