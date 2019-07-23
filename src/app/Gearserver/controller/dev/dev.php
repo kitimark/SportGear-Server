@@ -46,12 +46,13 @@ class dev{
                     return false;
                 }
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+                $hash = password_hash($pwd, PASSWORD_DEFAULT);
                 $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
                 $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("uni",$uni);
                 $stmt->bindParam("email",$email);
                 $stmt->bindParam("uni_full_name",$uni_full_name);
-                $stmt->bindParam("uni_pwd",$pwd);
+                $stmt->bindParam("uni_pwd",$hash);
                 $stmt->execute();
                 try{
                     $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
@@ -59,6 +60,7 @@ class dev{
                     $stmt->bindParam("uni",  $uni);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
+                    $result[0]['uni_pwd'] = $pwd;
                     return $result;
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);
@@ -66,7 +68,21 @@ class dev{
                 }
 
             }else{
-                return $result;
+                try{
+                    //if exists update it with new password
+                    $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+                    $hash = password_hash($pwd, PASSWORD_DEFAULT);
+                    $sql = 'UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni=:uni';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("uni",$uni);
+                    $stmt->bindParam("uni_pwd",$hash);
+                    $stmt->execute();
+                    $result[0]['uni_pwd'] = $pwd;
+                    return $result;
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                    return false;
+                }
             }
         }catch(PDOException $e){
             $this->logger->addInfo($e);
@@ -89,7 +105,7 @@ class dev{
 
         try {
             //Server settings
-            $mail->SMTPDebug = 2;                                       // Enable verbose debug output
+            $mail->SMTPDebug = 0;                                       // Enable verbose debug output
             $mail->isSMTP();                                            // Set mailer to use SMTP
             $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers
             $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
@@ -114,11 +130,11 @@ class dev{
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
             $mail->Subject = 'Geargame 30 - Username and Password for ' . $info[0]['uni_full_name'];
-            $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-            //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            $mail->Body    = 'Username : ' . $info[0]['uni'] . "<br>Password : " . $info[0]['uni_pwd'];
+            $mail->AltBody = 'Username : ' . $info[0]['uni'] . " Password : " . $info[0]['uni_pwd'];
 
             $mail->send();
-            return $response->write('Message has been sent');
+            return $response->write('Message has been sent to ' . $info[0]['email']);
         } catch (Exception $e) {
             $this->logger->addInfo($e);
             return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}")->withStatus(403);
