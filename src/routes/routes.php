@@ -17,7 +17,8 @@ $app->group('/api/v1',function() use ($app){
     $app->group('/sport',function() use ($app){
         $app->get('/id', function(Request $request,Response $response){
             $params = $request->getQueryParams();
-            if(empty($params['team_name']) || empty($params['sport_id'] || empty($params['uni']))){
+            $decoded = $request->getAttribute('jwt');
+            if(empty($params['team_name']) || empty($params['sport_id'] || empty($decoded['uni']))){
                 return $this->response->withStatus(400)
                     ->withJson(array(
                         'status' => 'error',
@@ -30,7 +31,7 @@ $app->group('/api/v1',function() use ($app){
                 $stmt = $this->db->prepare($sql);
                 $stmt->bindParam("team_name",$params['team_name']);
                 $stmt->bindParam("sport_id",$params['sport_id']);
-                $stmt->bindParam("uni",$params['uni']);
+                $stmt->bindParam("uni",$decoded['uni']);
                 $stmt->execute();
                 $result = $stmt->fetchAll();
                 if (count($result) != 0){
@@ -112,7 +113,8 @@ $app->group('/api/v1',function() use ($app){
                 // type = 1001
                 // uni = cmu
                 $params = $request->getQueryParams();
-                if(empty($params['type']) || empty($params['uni']) || empty($params['team_id'])){
+                $decoded = $request->getAttribute('jwt');
+                if(empty($params['type']) || empty($decoded['uni']) || empty($params['team_id'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
@@ -128,11 +130,20 @@ $app->group('/api/v1',function() use ($app){
                     WHERE account.uni = :uni AND sport_player.fk_sport_id = :id AND sport_player.fk_team_id = :teamid
                     ";
                     $stmt = $this->db->prepare($sql);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->bindParam("id",$params['type']);
                     $stmt->bindParam("teamid",$params['team_id']);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
+                    $result = array_map(function($data){
+                        return array(
+                            "id" => $data['account_id'],
+                            "firstName" => $data['fname'],
+                            "lastName" => $data['lname'],
+                            "sid" => $data['sid'],
+                            "team_id" => $data['team_id']
+                        );
+                    }, $result);
                     return $this->response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);                    
@@ -140,8 +151,9 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/addTeam',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 //$this->logger->addInfo(print_r($params));
-                if(empty($params['team_name']) || empty($params['sport_id']) || empty($params['uni'])){
+                if(empty($params['team_name']) || empty($params['sport_id']) || empty($decoded['uni'])){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
@@ -152,7 +164,7 @@ $app->group('/api/v1',function() use ($app){
                     $stmt = $this->db->prepare($sql);
                     $stmt->bindParam("team_name",$params['team_name']);
                     $stmt->bindParam("sport_id",$params['sport_id']);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->execute();
                     $id = $this->db->lastInsertId();
                     return $this->response->withJson(array(
@@ -166,12 +178,29 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/addPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
+                // check permission of university
+                try{
+                    $sql = "SELECT uni FROM sport_team WHERE id=:id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("id", $params['team_id']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    if ($result[0]['uni'] != $decoded['uni']){
+                        return $response->withStatus(403)
+                                        ->withJson(array("message" => "permission denied"));
+                    }
+                    return $response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+
                 for($index = 0 ; $index < count($params['account_id']);$index++){
                     try{
                         $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
@@ -187,12 +216,30 @@ $app->group('/api/v1',function() use ($app){
             });
             $app->post('/patchPlayer',function(Request $request , Response $response){
                 $params = $request->getParsedBody();
+                $decoded = $request->getAttribute('jwt');
                 if(empty($params['sport_id']) || empty($params['team_id'] || empty($params['account'][0]))){
                     return $this->response->withJson(array(
                         'status' => 'error',
                         'message' => 'QueryParams not set!'
                     ));
                 }
+
+                // check permission of university
+                try{
+                    $sql = "SELECT uni FROM sport_team WHERE id=:id";
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam("id", $params['team_id']);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll();
+                    if ($result[0]['uni'] != $decoded['uni']){
+                        return $response->withStatus(403)
+                                        ->withJson(array("message" => "permission denied"));
+                    }
+                    return $response->withJson($result);
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                }
+
                 try{
                     $sql = "DELETE FROM sport_player WHERE fk_team_id = :team_id";
                     $stmt = $this->db->prepare($sql);
@@ -231,6 +278,9 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
+        $app->group('/users' ,function() use($app){
+            $app->get('/info', Gearserver\controller\university::class . ':Info');
+        });
         $app->group('/{uni}', function() use ($app){
             $app->get('/sid', function(Request $request, Response $response, $args){
                 try{

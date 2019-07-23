@@ -20,6 +20,7 @@ class university{
         $date = new DateTime();
         $start_time = $date->getTimestamp();
         $end_time = $start_time + 3600;
+        $uni = $request->getParsedBody()['uni'];
         $settings = $this->container->get('settings')['token'];
         $key = $settings['key'];
         $token = array(
@@ -27,17 +28,17 @@ class university{
             "nbf" => $start_time,
             "exp" => $end_time,
             "roles" => ['university'],
+            "uni" => $uni,
             "ip" => $ipAddress
         );
         $jwt = 'Bearer ' . JWT::encode($token, $key);
         return $jwt;
     }
 
-    #@parmas uni 
     #return sid and info
     public function Info(Request $request,Response $response){
-        $params = $request->getParsedBody();
-        if(empty($params['uni'])){
+        $decoded = $request->getAttribute('jwt');
+        if(empty($decoded['uni'])){
             return $response->withJson(array(
                 'status' => 'error',
                 'message' => 'QueryParams not set!'
@@ -47,13 +48,19 @@ class university{
         try{
             $sql = "SELECT sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$params['uni']);
+            $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
             $result = $stmt->fetchAll();
-            for($index = 0 ; $index < count($result);$index++){
-                $detail = json_decode($result[$index]['details'], true);
-                $result[$index]['details'] = $detail;
-            }
+            $result = array_map(function($data){
+                return array(
+                    "sid" => $data["sid"],
+                    "firstName" => $data["fname"],
+                    "lastName" => $data["lname"],
+                    "email" => $data["email"],
+                    "details" => json_decode($data["details"], true),
+                    "img_url" => $data["img_url"]
+                );
+            }, $result);
             return $response->withJson($result);
         }catch(PDOException $e){
             $this->container->logger->addInfo($e);
