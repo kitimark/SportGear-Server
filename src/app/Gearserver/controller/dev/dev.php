@@ -135,7 +135,7 @@ class dev{
             </style><meta name="viewport" content="width=device-width" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body bgcolor="#FFFFFF">
             <table" bgcolor="#fff"><tr><td></td><td><div><table bgcolor="#fff"><tr><td><img style="height: 60px" src="https://drive.google.com/uc?export=view&id=1vBPAbRqHsZ-mS1Ybr82rACKm6DDDZOlK" /></td>
             <td align="right"><h6>Geargame30</h6></td></tr></table></div></td><td></td></tr></table><table><tr><td></td><td" bgcolor="#FFFFFF"><div><table><tr><td><h3>การเข้าใช้งานระบบลงทะเบียน</h3><p>USERNAME & PASSWORD สำหรับการเข้าสู้ระบบลงทะเบียน Geargame30 ณ คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเชียงใหม่ ในวันที่ 23 - 28 ธันวาคม 2561</p>
-            <p>USERNAME : ' . $info[0]['uni'] . '<br>PASSWORD : ' . $info[0]['uni_pwd'] . '<br></p><a href="geargame30.eng.cmu.ac.th/log-in">เข้าสู้เว็บไซต์</a></td></tr></table></div></td><td></td></tr></table></body></html>';
+            <p>USERNAME : ' . $info[0]['uni'] . '<br>PASSWORD : ' . $info[0]['uni_pwd'] . '<br></p><a href="geargame30.eng.cmu.ac.th/log-in">เข้าสู้เว็บไซต์</a><br><a href="https://drive.google.com/file/d/1l8ETUy_wN4F3qakQhMTVsTwMdBc81_U_/view?usp=sharing">ดาวน์โหลด Template excel สำหรับ Import</a></td></tr></table></div></td><td></td></tr></table></body></html>';
             $mail->AltBody = 'Username : ' . $info[0]['uni'] . " Password : " . $info[0]['uni_pwd'];
 
             $mail->send();
