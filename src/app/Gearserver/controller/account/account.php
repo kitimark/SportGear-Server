@@ -41,8 +41,9 @@ class account{
 
     public function Adduser(Request $request,Response $response){
         $params = $request->getParsedBody();
+        $decoded = $request->getAttribute('jwt');
         $sid = $params['sid'];
-        $uni = $params['uni'];
+        $uni = $decoded['uni'];
         $fname = $params['fname'];
         $lname = $params['lname'];
         $email = $params['email'];

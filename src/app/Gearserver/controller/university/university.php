@@ -112,7 +112,7 @@ class university{
 
     public function PasswordChange(Request $request,Response $response,$args){
         //uni get from api/{uni}/passwordchange
-        $uni = $args['uni'];
+        $decoded = $request->getAttribute('jwt');
         $params = $request->getParsedBody();
         $old_password = $params['old_password'];
         $password = $params['password'];
@@ -120,7 +120,7 @@ class university{
         try{
             $sql = "SELECT uni_pwd FROM account_uni WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$uni);
+            $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
             $result = $stmt->fetchAll();
             if(password_verify($old_password,$result[0]['uni_pwd']) && $password === $confirm_password){
@@ -128,7 +128,7 @@ class university{
                     $hash = password_hash($password, PASSWORD_DEFAULT);
                     $sql = "UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni = :uni";
                     $stmt = $this->container->db->prepare($sql);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->bindParam("uni_pwd",$hash);
                     $stmt->execute();
                     return $response->withStatus(200);
