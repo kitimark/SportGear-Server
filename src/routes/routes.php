@@ -198,7 +198,6 @@ $app->group('/api/v1',function() use ($app){
                         return $response->withStatus(403)
                                         ->withJson(array("message" => "permission denied"));
                     }
-                    return $response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);
                 }
@@ -237,7 +236,6 @@ $app->group('/api/v1',function() use ($app){
                         return $response->withStatus(403)
                                         ->withJson(array("message" => "permission denied"));
                     }
-                    return $response->withJson($result);
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);
                 }
