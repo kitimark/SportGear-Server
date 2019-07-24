@@ -110,6 +110,25 @@ class university{
         }
     }
 
+    public function Session(Request $request, Response $response){
+        $decoded = $request->getAttribute('jwt');
+        try {
+            $sql = "SELECT id,uni,uni_full_name FROM account_uni WHERE uni=:uni";
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni", $decoded['uni']);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            return $response->withJson(array(
+                'id' => $result[0]['id'],
+                'uni' => $result[0]['uni'],
+                'fullname' => $result[0]['uni_full_name']
+            ));
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
+
     public function PasswordChange(Request $request,Response $response,$args){
         //uni get from api/{uni}/passwordchange
         $decoded = $request->getAttribute('jwt');

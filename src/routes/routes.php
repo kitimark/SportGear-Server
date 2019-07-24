@@ -278,6 +278,7 @@ $app->group('/api/v1',function() use ($app){
         });
     });
     $app->group('/university',function() use ($app){
+        $app->get('', Gearserver\controller\university::class . ':Session');
         $app->group('/users' ,function() use($app){
             $app->get('/info', Gearserver\controller\university::class . ':Info');
         });
