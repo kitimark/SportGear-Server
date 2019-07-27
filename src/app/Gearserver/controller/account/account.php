@@ -18,7 +18,7 @@ class account{
         if(empty($args['sid'])){
             return $response->withJson(array(
                 'message' => 'sid QueryParams not set!'
-            ));
+            ))->withStatus(401);
         }
         try{
             $sql = "SELECT * FROM account WHERE sid = :sid";
@@ -38,6 +38,55 @@ class account{
             $this->container->logger->addInfo($e);
         }
     }
+    public function Update_ImageURL(Request $request,Response $response,$args){
+        $params = $request->getParsedBody();
+        $sid = $args['sid']; // api/v1/account/{sid}/img
+        $img_url = $params['img_url'];
+        if(empty($sid)){
+            return $response->withStatus(401)->withJson(array(
+                'message' => 'sid QueryParams not set!'
+            ));
+        }
+        if(empty($img_url)){
+            return $response->withStatus(401)->withJson(array(
+                'message' => 'img_url not set!'
+            ));
+        }
+
+        try{
+            // Select to check user exists or not !
+            $sql = 'SELECT sid,img_url FROM account WHERE sid=:sid';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("sid", $sid);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            if(count($result) > 0){
+                try{
+                    $sql = 'UPDATE account SET img_url=:img_url WHERE sid=:sid';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("sid", $sid);
+                    $stmt->bindParam("img_url",$img_url);
+                    $stmt->execute();
+                    return $response->withJson(array(
+                        'message' => 'Updated img_url id='. $sid
+                    ));
+                }catch(PDOException $e){
+                    $this->container->logger->addInfo($e);
+                    return $response->withStatus(500);
+                }
+            }else{
+                // not exists
+                return $response->withStatus(401)->withJson(array(
+                    'message' => 'Account not exists'
+                ));
+            }
+
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
+        
 
     public function Adduser(Request $request,Response $response){
         $params = $request->getParsedBody();
