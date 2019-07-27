@@ -43,7 +43,7 @@ class account{
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
         $sid = $params['sid'];
-        $uni = $decoded['uni'];
+        $uni = strtolower($decoded['uni']);  
         $fname = $params['fname'];
         $lname = $params['lname'];
         $email = $params['email'];
