@@ -35,11 +35,10 @@ class university{
         return $jwt;
     }
 
-    #@parmas uni 
     #return sid and info
     public function Info(Request $request,Response $response){
-        $params = $request->getParsedBody();
-        if(empty($params['uni'])){
+        $decoded = $request->getAttribute('jwt');
+        if(empty($decoded['uni'])){
             return $response->withJson(array(
                 'status' => 'error',
                 'message' => 'QueryParams not set!'
@@ -49,13 +48,19 @@ class university{
         try{
             $sql = "SELECT sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$params['uni']);
+            $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
             $result = $stmt->fetchAll();
-            for($index = 0 ; $index < count($result);$index++){
-                $detail = json_decode($result[$index]['details'], true);
-                $result[$index]['details'] = $detail;
-            }
+            $result = array_map(function($data){
+                return array(
+                    "sid" => $data["sid"],
+                    "firstName" => $data["fname"],
+                    "lastName" => $data["lname"],
+                    "email" => $data["email"],
+                    "details" => json_decode($data["details"], true),
+                    "img_url" => $data["img_url"]
+                );
+            }, $result);
             return $response->withJson($result);
         }catch(PDOException $e){
             $this->container->logger->addInfo($e);
@@ -105,9 +110,28 @@ class university{
         }
     }
 
+    public function Session(Request $request, Response $response){
+        $decoded = $request->getAttribute('jwt');
+        try {
+            $sql = "SELECT id,uni,uni_full_name FROM account_uni WHERE uni=:uni";
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni", $decoded['uni']);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            return $response->withJson(array(
+                'id' => $result[0]['id'],
+                'uni' => $result[0]['uni'],
+                'fullname' => $result[0]['uni_full_name']
+            ));
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
+
     public function PasswordChange(Request $request,Response $response,$args){
         //uni get from api/{uni}/passwordchange
-        $uni = $args['uni'];
+        $decoded = $request->getAttribute('jwt');
         $params = $request->getParsedBody();
         $old_password = $params['old_password'];
         $password = $params['password'];
@@ -115,7 +139,7 @@ class university{
         try{
             $sql = "SELECT uni_pwd FROM account_uni WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$uni);
+            $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
             $result = $stmt->fetchAll();
             if(password_verify($old_password,$result[0]['uni_pwd']) && $password === $confirm_password){
@@ -123,7 +147,7 @@ class university{
                     $hash = password_hash($password, PASSWORD_DEFAULT);
                     $sql = "UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni = :uni";
                     $stmt = $this->container->db->prepare($sql);
-                    $stmt->bindParam("uni",$params['uni']);
+                    $stmt->bindParam("uni",$decoded['uni']);
                     $stmt->bindParam("uni_pwd",$hash);
                     $stmt->execute();
                     return $response->withStatus(200);

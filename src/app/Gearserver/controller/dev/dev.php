@@ -14,11 +14,11 @@ class dev{
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
     }
-    public function sentMail_db($uni){
-        $file_url = '';
+    protected function sentMail_db($uni){
+        $file_url = __DIR__ . '/uniMap.json';
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("uni",  $uni);
             $stmt->execute();
             $result = $stmt->fetchAll();
@@ -26,6 +26,7 @@ class dev{
                 //TODO
                 //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
                 $json = file_get_contents($file_url);//load from url
+                
                 /*
                 {
                     "cmu":{
@@ -45,18 +46,21 @@ class dev{
                     return false;
                 }
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+                $hash = password_hash($pwd, PASSWORD_DEFAULT);
                 $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
+                $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("uni",$uni);
                 $stmt->bindParam("email",$email);
                 $stmt->bindParam("uni_full_name",$uni_full_name);
-                $stmt->bindParam("uni_pwd",$pwd);
+                $stmt->bindParam("uni_pwd",$hash);
                 $stmt->execute();
                 try{
                     $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
-                    $stmt = $this->db->prepare($sql);
+                    $stmt = $this->container->db->prepare($sql);
                     $stmt->bindParam("uni",  $uni);
                     $stmt->execute();
                     $result = $stmt->fetchAll();
+                    $result[0]['uni_pwd'] = $pwd;
                     return $result;
                 }catch(PDOException $e){
                     $this->logger->addInfo($e);
@@ -64,7 +68,21 @@ class dev{
                 }
 
             }else{
-                return $result;
+                try{
+                    //if exists update it with new password
+                    $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+                    $hash = password_hash($pwd, PASSWORD_DEFAULT);
+                    $sql = 'UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni=:uni';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("uni",$uni);
+                    $stmt->bindParam("uni_pwd",$hash);
+                    $stmt->execute();
+                    $result[0]['uni_pwd'] = $pwd;
+                    return $result;
+                }catch(PDOException $e){
+                    $this->logger->addInfo($e);
+                    return false;
+                }
             }
         }catch(PDOException $e){
             $this->logger->addInfo($e);
@@ -77,7 +95,7 @@ class dev{
         if(empty($params['uni'])){
             return $response->withStatus(403);
         }
-        $info = sentMail_db($params['uni']);
+        $info = $this->sentMail_db($params['uni']);
         if($info === false){
             return $response->withStatus(403);
         }
@@ -87,7 +105,8 @@ class dev{
 
         try {
             //Server settings
-            $mail->SMTPDebug = 2;                                       // Enable verbose debug output
+            $mail->CharSet = "utf-8";
+            $mail->SMTPDebug = 0;                                       // Enable verbose debug output
             $mail->isSMTP();                                            // Set mailer to use SMTP
             $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers
             $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
@@ -97,26 +116,30 @@ class dev{
             $mail->Port       = 587;                                    // TCP port to connect to
 
             //Recipients
-            $mail->setFrom('geargame30@eng.cmu.ac.th', 'Mailer');
-            $mail->addAddress($info['email'], $info['uni_full_name']);     // Add a recipient
+            $mail->setFrom('geargame30@eng.cmu.ac.th', 'Geargame30');
+            $mail->addAddress($info[0]['email'], $info[0]['uni_full_name']);     // Add a recipient
             //$mail->addAddress('ellen@example.com');               // Name is optional
             //$mail->addReplyTo('info@example.com', 'Information');
             //$mail->addCC('cc@example.com');
             //$mail->addBCC('bcc@example.com');
 
             // Attachments
-            $mail->addStringAttachment(file_get_contents($file_url), 'account');
+            //$mail->addStringAttachment(file_get_contents($file_url), 'account');
             //$mail->addAttachment('');         // Add attachments
             //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
 
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
-            $mail->Subject = 'Geargame 30 - Username and Password for ' + $info['uni_full_name'];
-            $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-            //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            $mail->Subject = 'Geargame 30 - Username and Password for ' . $info[0]['uni_full_name'];
+            $mail->Body = '<html><head><style>* { margin:0;padding:0;}* { font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; }
+            </style><meta name="viewport" content="width=device-width" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body bgcolor="#FFFFFF">
+            <table" bgcolor="#fff"><tr><td></td><td><div><table bgcolor="#fff"><tr><td><img style="height: 60px" src="https://drive.google.com/uc?export=view&id=1vBPAbRqHsZ-mS1Ybr82rACKm6DDDZOlK" /></td>
+            <td align="right"><h6>Geargame30</h6></td></tr></table></div></td><td></td></tr></table><table><tr><td></td><td" bgcolor="#FFFFFF"><div><table><tr><td><h3>การเข้าใช้งานระบบลงทะเบียน</h3><p>USERNAME & PASSWORD สำหรับการเข้าสู้ระบบลงทะเบียน Geargame30 ณ คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเชียงใหม่ ในวันที่ 23 - 28 ธันวาคม 2561</p>
+            <p>USERNAME : ' . $info[0]['uni'] . '<br>PASSWORD : ' . $info[0]['uni_pwd'] . '<br></p><a href="geargame30.eng.cmu.ac.th/log-in">เข้าสู้เว็บไซต์</a><br><a href="https://drive.google.com/file/d/1l8ETUy_wN4F3qakQhMTVsTwMdBc81_U_/view?usp=sharing">ดาวน์โหลด Template excel สำหรับ Import</a></td></tr></table></div></td><td></td></tr></table></body></html>';
+            $mail->AltBody = 'Username : ' . $info[0]['uni'] . " Password : " . $info[0]['uni_pwd'];
 
             $mail->send();
-            return $response->write('Message has been sent');
+            return $response->write('Message has been sent to ' . $info[0]['email']);
         } catch (Exception $e) {
             $this->logger->addInfo($e);
             return $response->write("Message could not be sent. Mailer Error: {$mail->ErrorInfo}")->withStatus(403);
