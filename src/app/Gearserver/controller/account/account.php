@@ -92,10 +92,22 @@ class account{
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
         $sid = $params['sid'];
-        $uni = $decoded['uni'];
+        $uni = strtolower($decoded['uni']);  
         $fname = $params['fname'];
         $lname = $params['lname'];
         $email = $params['email'];
+        
+        if(strlen($sid) != 13 || !is_numeric($sid)){
+            return $response->withStatus(403)->withJson(array(
+                "message" => "SID length invalid or not numeric"
+            ));
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $response->withStatus(403)->withJson(array(
+                "message" => "Email invalid"
+            ));
+        }
+
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
             $sql = 'INSERT INTO account(sid,uni,fname,lname,email,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:hash)';
