@@ -41,7 +41,7 @@ class dev{
                     return false;
                 }
                 $email = $data[$uni]['email'];
-                $uni_full_name = $data[$uni]['name'];
+                $uni_full_name = $data[$uni]['unifullname'];
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return false;
                 }
