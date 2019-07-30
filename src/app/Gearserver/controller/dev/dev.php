@@ -15,7 +15,7 @@ class dev{
         $this->container = $container;
     }
     protected function sentMail_db($uni){
-        $file_url = __DIR__ . '/uniMap.json';
+        $file_url = 'https://dl.dropboxusercontent.com/s/b43rbftbwz3qxui/uniMap.json';
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
             $stmt = $this->container->db->prepare($sql);
@@ -41,7 +41,7 @@ class dev{
                     return false;
                 }
                 $email = $data[$uni]['email'];
-                $uni_full_name = $data[$uni]['name'];
+                $uni_full_name = $data[$uni]['unifullname'];
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return false;
                 }
