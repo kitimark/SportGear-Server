@@ -87,7 +87,46 @@ class account{
         }
     }
         
+    public function Deleteuser(Request $request,Response $response,$args){
+        $sid = $args['sid'];
+        if(empty($sid)){
+            return $response->withStatus(403);
+        }
 
+        try{
+            try{
+                $sql = 'SELECT id FROM account WHERE sid=:sid';
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("sid", $sid);
+                $stmt->execute();
+                $user_id = $stmt->fetchAll();
+                if(count($user_id) > 0){
+                    try{
+                        $sql = 'DELETE FROM sport WHERE fk_account_id=:id';
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("id", $user_id);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->container->logger->addInfo($e);
+                        return $response->withStatus(403);
+                    }
+                }
+            }catch(PDOException $e){
+                $this->container->logger->addInfo($e);
+                return $response->withStatus(403);                
+            }
+            $sql = 'DELETE FROM account WHERE sid=:sid';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("sid", $sid);
+            $stmt->execute();
+            return $response->withJson(array(
+                'message' => 'Delete User'
+            ));
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(403);
+        }
+    }
     public function Adduser(Request $request,Response $response){
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
