@@ -46,13 +46,14 @@ class university{
         }
 
         try{
-            $sql = "SELECT sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
+            $sql = "SELECT id,sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
             $result = $stmt->fetchAll();
             $result = array_map(function($data){
                 return array(
+                    'id' => $data['id'],
                     "sid" => $data["sid"],
                     "firstName" => $data["fname"],
                     "lastName" => $data["lname"],

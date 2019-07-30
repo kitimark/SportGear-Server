@@ -86,34 +86,50 @@ class account{
             return $response->withStatus(401);
         }
     }
-        
-    public function Deleteuser(Request $request,Response $response,$args){
-        $sid = $args['sid'];
-        if(empty($sid)){
+    
+    public function Updateuser(Request $request,Response $response,$args){
+        $user_id = $args['id'];// api/{id}/update
+        $params = $request->getParsedBody();
+        $sid = $params['sid'];
+        $fname = $params['fname'];
+        $lname = $params['lname'];
+        $email = $params['email'];
+        $gender = $params['gender'];
+        if(empty($user_id) || empty($sid) || empty($fname) || empty($lname) || empty($email) || empty($gender)){
             return $response->withStatus(403);
         }
+        try{
+            $sql = 'UPDATE account SET sid=:sid,fname=:fname,lname=:lname,email=:email,gender=:gender WHERE id=:id';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("sid", $sid);
+            $stmt->bindParam("fname",$fname);
+            $stmt->bindParam("lname",$lname);
+            $stmt->bindParam("email",$email);
+            $stmt->bindParam("gender",$gender);
+            $stmt->execute();
+            return $response->withJson(array(
+                'message' => 'Update user'
+            ));
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
 
+    public function Deleteuser(Request $request,Response $response,$args){
+        $user_id = $args['id'];// api/{id}/delete
+        if(empty($user_id)){
+            return $response->withStatus(403);
+        }
         try{
             try{
-                $sql = 'SELECT id FROM account WHERE sid=:sid';
+                $sql = 'DELETE FROM sport WHERE fk_account_id=:id';
                 $stmt = $this->container->db->prepare($sql);
-                $stmt->bindParam("sid", $sid);
+                $stmt->bindParam("id", $user_id);
                 $stmt->execute();
-                $user_id = $stmt->fetchAll();
-                if(count($user_id) > 0){
-                    try{
-                        $sql = 'DELETE FROM sport WHERE fk_account_id=:id';
-                        $stmt = $this->container->db->prepare($sql);
-                        $stmt->bindParam("id", $user_id);
-                        $stmt->execute();
-                    }catch(PDOException $e){
-                        $this->container->logger->addInfo($e);
-                        return $response->withStatus(403);
-                    }
-                }
             }catch(PDOException $e){
                 $this->container->logger->addInfo($e);
-                return $response->withStatus(403);                
+                return $response->withStatus(403);
             }
             $sql = 'DELETE FROM account WHERE sid=:sid';
             $stmt = $this->container->db->prepare($sql);
@@ -135,7 +151,8 @@ class account{
         $fname = $params['fname'];
         $lname = $params['lname'];
         $email = $params['email'];
-        
+        $gender = $params['gender'];// Male= 1 Female= 2
+
         if(strlen($sid) != 13 || !is_numeric($sid)){
             return $response->withStatus(403)->withJson(array(
                 "message" => "SID length invalid or not numeric"
@@ -149,13 +166,14 @@ class account{
 
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:hash)';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash)';
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
             $stmt->bindParam("fname", $fname);
             $stmt->bindParam("lname", $lname);
             $stmt->bindParam("email", $email);
+            $stmt->bindParam("gender", $gender);
             $stmt->bindParam("hash", $hash);
             $stmt->execute();
             $id = $this->container->db->lastInsertId();
