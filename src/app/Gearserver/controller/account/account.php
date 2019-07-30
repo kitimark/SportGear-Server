@@ -115,7 +115,33 @@ class account{
             return $response->withStatus(401);
         }
     }
-
+ 
+    public function Update_Details(Request $request,Response $response,$args){
+        $user_id = $args['id'];// api/{id}/details
+        $params = $request->getParsedBody();
+        $details = $params['details'];
+        $ob = json_decode($json);
+        if($ob === null) {
+            // $ob is null because the json cannot be decoded
+            return $response->withStatus(403);
+        }
+        if(empty($user_id)){
+            return $response->withStatus(403);
+        }
+        try{
+            $sql = 'UPDATE account SET details=:details WHERE id=:id';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("id", $user_id);
+            $stmt->bindParam("details", $details);
+            $stmt->execute();
+            return $response->withJson(array(
+                'message' => 'Update user details'
+            ));
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(401);
+        }
+    }
     public function Deleteuser(Request $request,Response $response,$args){
         $user_id = $args['id'];// api/{id}/delete
         if(empty($user_id)){
