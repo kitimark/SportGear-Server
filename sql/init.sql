@@ -23,6 +23,7 @@ CREATE TABLE account(
     fname VARCHAR(128) NOT NULL,
     lname VARCHAR(128) NOT NULL,
     email VARCHAR(255),
+    gender ENUM('Male','Female'),
     pwd VARCHAR(255) NOT NULL,
     img_url text,
     details JSON,
