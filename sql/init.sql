@@ -66,8 +66,10 @@ INSERT INTO `sport` VALUES ('1701','athletics','100M relay men'),('1702','athlet
 CREATE TABLE sport_match(
     id INT NOT NULL AUTO_INCREMENT,
     match_timestamp TIMESTAMP NOT NULL,
+    fk_sport_id VARCHAR(4) NOT NULL,
     fk_team1 INT NOT NULL,
     fk_team2 INT NOT NULL,
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
     FOREIGN KEY (fk_team1) REFERENCES sport_team(id),
     FOREIGN KEY (fk_team2) REFERENCES sport_team(id),
     PRIMARY KEY(id)
