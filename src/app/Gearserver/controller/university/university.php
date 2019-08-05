@@ -79,35 +79,66 @@ class university{
                 'message' => 'QueryParams not set!'
             ))->withStatus(401);
         }
-
-        try{
-            $sql = "SELECT id,uni,uni_full_name,uni_pwd FROM account_uni WHERE uni = :uni";
-            $stmt = $this->container->db->prepare($sql);
-            $stmt->bindParam("uni",$params['uni']);
-            $stmt->execute();
-            $result = $stmt->fetchAll();
-            if(count($result) > 0){
-                if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
-                    $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
-                    return $this->response->withJson(array(
-                        'message' => 'login complete!',
-                        'id' => $result[0]['id'],
-                        'uni' => $result[0]['uni'],
-                        'fullname' => $result[0]['uni_full_name']
-                    ));
+        if (filter_var($params['uni'], FILTER_VALIDATE_EMAIL)){
+            try{
+                $sql = "SELECT id,email,uni,uni_full_name,uni_pwd FROM account_uni WHERE email = :email";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("email",$params['uni']);
+                $stmt->execute();
+                $result = $stmt->fetchAll();
+                if(count($result) > 0){
+                    if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
+                        $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
+                        return $this->response->withJson(array(
+                            'message' => 'login complete!',
+                            'id' => $result[0]['id'],
+                            'uni' => $result[0]['uni'],
+                            'fullname' => $result[0]['uni_full_name']
+                        ));
+                    }else{
+                        return $response->withJson(array(
+                            'message' => 'password not match'
+                        ))->withStatus(401);
+                    }  
                 }else{
                     return $response->withJson(array(
-                        'message' => 'password not match'
+                        'message' => 'User not found!'
                     ))->withStatus(401);
-                }  
-            }else{
-                return $response->withJson(array(
-                    'message' => 'User not found!'
-                ))->withStatus(401);
+                }
+            }catch(PDOException $e){
+                $this->container->logger->addInfo($e);
+                return $response->withStatus(401);
             }
-        }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
-            return $response->withStatus(401);
+        }else{
+            try{
+                $sql = "SELECT id,email,uni,uni_full_name,uni_pwd FROM account_uni WHERE uni = :uni";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("uni",$params['uni']);
+                $stmt->execute();
+                $result = $stmt->fetchAll();
+                if(count($result) > 0){
+                    if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
+                        $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
+                        return $this->response->withJson(array(
+                            'message' => 'login complete!',
+                            'id' => $result[0]['id'],
+                            'uni' => $result[0]['uni'],
+                            'fullname' => $result[0]['uni_full_name']
+                        ));
+                    }else{
+                        return $response->withJson(array(
+                            'message' => 'password not match'
+                        ))->withStatus(401);
+                    }  
+                }else{
+                    return $response->withJson(array(
+                        'message' => 'User not found!'
+                    ))->withStatus(401);
+                }
+            }catch(PDOException $e){
+                $this->container->logger->addInfo($e);
+                return $response->withStatus(401);
+            }
         }
     }
 
