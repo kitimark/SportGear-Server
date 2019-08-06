@@ -19,7 +19,27 @@ class sport{
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute();
             $result = $stmt->fetchall();
-            return $response->withJson($result);
+            $obj = array();
+            foreach ($result as $value) {
+                if (empty($obj[$value['sport_name']])){
+                    $obj[$value['sport_name']] = array(
+                        "type" => array(
+                            $value['sport_type'] => array(
+                                "eachTeam" => $value['each_team'],
+                                "teams" => $value['teams']
+                            )
+                        )
+                    );
+                }else{
+                    $obj[$value['sport_name']]["type"] +=  array(
+                        $value['sport_type'] => array(
+                            "eachTeam" => $value['each_team'],
+                            "teams" => $value['teams']
+                        )
+                    );
+                }
+            }
+            return $response->withJson($obj);
         }catch(PDOException $e){
             $this->container->logger->addInfo($e);
         }
