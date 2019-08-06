@@ -21,21 +21,20 @@ class sport{
             $result = $stmt->fetchall();
             $obj = array();
             foreach ($result as $value) {
+                $data = array(
+                    "_id" => $value['id'],
+                    "eachTeam" => (int)$value['each_team'],
+                    "teams" => (int)$value['teams']
+                );
                 if (empty($obj[$value['sport_name']])){
                     $obj[$value['sport_name']] = array(
                         "type" => array(
-                            $value['sport_type'] => array(
-                                "eachTeam" => $value['each_team'],
-                                "teams" => $value['teams']
-                            )
+                            $value['sport_type'] => $data
                         )
                     );
                 }else{
-                    $obj[$value['sport_name']]["type"] +=  array(
-                        $value['sport_type'] => array(
-                            "eachTeam" => $value['each_team'],
-                            "teams" => $value['teams']
-                        )
+                    $obj[$value['sport_name']]["type"] += array(
+                        $value['sport_type'] => $data
                     );
                 }
             }
