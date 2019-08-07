@@ -1,7 +1,12 @@
 FROM php:7.3.6-fpm
 
-RUN apt-get update && apt-get install -y libpng-dev
+ENV APP_ROOT /app
 
+RUN mkdir ${APP_ROOT}
+WORKDIR ${APP_ROOT}
+ADD . ${APP_ROOT}
+
+RUN apt-get update && apt-get install -y libpng-dev
 RUN docker-php-ext-install pdo_mysql mbstring
 
 EXPOSE 9000
