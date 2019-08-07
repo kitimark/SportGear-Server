@@ -75,3 +75,14 @@ CREATE TABLE sport_match(
     PRIMARY KEY(id)
 );
 
+CREATE TABLE mail_info(
+    id INT NOT NULL AUTO_INCREMENT,
+    uni VARCHAR(4) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    fullname VARCHAR(255) NOT NULL,
+    owner_fname VARCHAR(255) NOT NULL,
+    owner_lname VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY(uni)
+)
+
