@@ -46,7 +46,7 @@ class university{
         }
 
         try{
-            $sql = "SELECT id,sid,email,fname,lname,details,img_url FROM account WHERE uni = :uni";
+            $sql = "SELECT id,sid,email,fname,lname,gender,details,img_url FROM account WHERE uni = :uni";
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("uni",$decoded['uni']);
             $stmt->execute();
@@ -57,6 +57,7 @@ class university{
                     "sid" => $data["sid"],
                     "firstName" => $data["fname"],
                     "lastName" => $data["lname"],
+                    "gender" => $data["gender"],
                     "email" => $data["email"],
                     "details" => json_decode($data["details"], true),
                     "img_url" => $data["img_url"]
