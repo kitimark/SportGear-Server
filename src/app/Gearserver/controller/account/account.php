@@ -4,7 +4,7 @@ namespace Gearserver\controller;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-
+use \PDOException;
 
 class account{
     protected $container;
@@ -214,7 +214,11 @@ class account{
         ));
 
         }catch(PDOException $e){
-            $this->logger->addInfo($e);
+            $this->container->logger->addInfo($e);
+            return $response->withJson(array(
+                "code" => $e->getCode(),
+                "message" => $e->getMessage()
+            ))->withStatus($e->getCode());
         }
     }
     
