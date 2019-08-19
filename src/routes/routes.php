@@ -350,7 +350,7 @@ $app->group('/api/v1',function() use ($app){
     });
     $app->group('/users', function () use ($app) {
         $app->get('/info', Gearserver\controller\account::class . ':info');
-        $app->post('',Gearserver\controller\account::class . ':Adduser');
+        $app->post('',Gearserver\controller\account::class . ':Addusers');
         //login the user
         /*
         $app->post('/login',function(Request $request,Response $response){
