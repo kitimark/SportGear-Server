@@ -39,7 +39,7 @@ CREATE TABLE sport(
     sport_type VARCHAR(255) NOT NULL,
     each_team INT,
     teams INT,
-    gender ENUM("Male","Female"),
+    gender ENUM("Male","Female","Male&Female"),
     UNIQUE KEY(sport_name,sport_type)
 );
 
