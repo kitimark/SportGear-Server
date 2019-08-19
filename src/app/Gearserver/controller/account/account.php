@@ -222,4 +222,44 @@ class account{
         }
     }
     
+    public function Addusers(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        $decoded = $request->getAttribute('jwt');
+        $uni = strtolower($decoded['uni']);  
+        try{
+            foreach($params as $key=>$user){
+                if(strlen($user['sid']) != 13 || !is_numeric($user['sid'])){
+                    return $response->withStatus(403)->withJson(array(
+                        "message" => "SID{".$key."} length invalid or not numeric"
+                    ));
+                }
+                if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+                    return $response->withStatus(403)->withJson(array(
+                        "message" => "Email{".$key."} invalid"
+                    ));
+                }
+                $params[$key]['uni'] = $uni;
+            }
+            
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd) VALUES ';
+            $sql .= implode(',', array_map(function($el) {
+                return '(?, ?, ?, ?, ?, ?, ?)';
+            }, $params));
+            $sql .= ';';
+            $args = array();
+            foreach($params as $user) {
+                $hash = password_hash($user['password'], PASSWORD_DEFAULT);
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash);
+            }
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->execute($args);
+            return $response->withJson(array(
+                "message" => "Insert complete",
+                "sql" => $sql,
+                "params" => $args
+            ));
+        }catch(PDOException $e){
+            $this->logger->addInfo($e);
+        }
+    }
 }
