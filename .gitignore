@@ -2,4 +2,4 @@
 .vscode
 .env
 src/vendor
-src/app/logs
+src/logs
