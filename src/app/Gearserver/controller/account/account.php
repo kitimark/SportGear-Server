@@ -178,6 +178,7 @@ class account{
         $lname = $params['lname'];
         $email = $params['email'];
         $gender = $params['gender'];// Male= 1 Female= 2
+        $details = $params['datails'];
 
         if(strlen($sid) != 13 || !is_numeric($sid)){
             return $response->withStatus(403)->withJson(array(
@@ -192,7 +193,7 @@ class account{
 
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash)';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details)';
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
@@ -201,6 +202,7 @@ class account{
             $stmt->bindParam("email", $email);
             $stmt->bindParam("gender", $gender);
             $stmt->bindParam("hash", $hash);
+            $stmt->bindParam("details", $details);
             $stmt->execute();
             $id = $this->container->db->lastInsertId();
             return $response->withJson(array(
@@ -237,15 +239,15 @@ class account{
                 $params[$key]['uni'] = $uni;
             }
             
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd) VALUES ';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES ';
             $sql .= implode(',', array_map(function($el) {
-                return '(?, ?, ?, ?, ?, ?, ?)';
+                return '(?, ?, ?, ?, ?, ?, ?, ?)';
             }, $params));
             $sql .= ';';
             $args = array();
             foreach($params as $user) {
                 $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash);
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, $user['details']);
             }
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute($args);
