@@ -39,6 +39,7 @@ CREATE TABLE sport(
     sport_type VARCHAR(255) NOT NULL,
     each_team INT,
     teams INT,
+    gender ENUM("Male","Female","Male&Female"),
     UNIQUE KEY(sport_name,sport_type)
 );
 
@@ -152,6 +153,30 @@ CREATE TABLE sport_match(
     FOREIGN KEY (fk_team1) REFERENCES sport_team(id),
     FOREIGN KEY (fk_team2) REFERENCES sport_team(id),
     PRIMARY KEY(id)
+);
+
+CREATE TABLE sport_match_8v8(
+    id INT NOT NULL AUTO_INCREMENT,
+    match_timestamp TIMESTAMP NOT NULL,
+    fk_sport_id VARCHAR(4) NOT NULL,
+    fk_team1 INT,
+    fk_team2 INT,
+    fk_team3 INT,
+    fk_team4 INT,
+    fk_team5 INT,
+    fk_team6 INT,
+    fk_team7 INT,
+    fk_team8 INT,
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
+    FOREIGN KEY (fk_team1) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team2) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team3) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team4) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team5) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team6) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team7) REFERENCES sport_team(id),
+    FOREIGN KEY (fk_team8) REFERENCES sport_team(id),
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE mail_info(
