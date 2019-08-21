@@ -251,7 +251,7 @@ class account{
             $args = array();
             foreach($params as $user) {
                 $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, $user['details']);
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']));
             }
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute($args);
