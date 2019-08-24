@@ -26,7 +26,8 @@ class sport{
                 $data = array(
                     "_id" => $value['id'],
                     "eachTeam" => (int)$value['each_team'],
-                    "teams" => (int)$value['teams']
+                    "teams" => (int)$value['teams'],
+                    "gender" => $value['gender']
                 );
                 if (empty($obj[$value["sport_name{$lang}"]])){
                     $obj[$value["sport_name{$lang}"]] = array(
