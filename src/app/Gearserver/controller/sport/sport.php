@@ -14,8 +14,10 @@ class sport{
     }
 
     public function ListSport(Request $request,Response $response){
+        $params = $request->getQueryParams();
+        $lang = (empty($params['lang']) ? "" : "_{$params['lang']}");
         try{    
-            $sql = "SELECT * FROM sport";
+            $sql = "SELECT id, sport_name{$lang}, sport_type{$lang}, each_team, teams, gender FROM sport";
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute();
             $result = $stmt->fetchall();
@@ -26,14 +28,14 @@ class sport{
                     "eachTeam" => (int)$value['each_team'],
                     "teams" => (int)$value['teams']
                 );
-                if (empty($obj[$value['sport_name']])){
-                    $obj[$value['sport_name']] = array(
+                if (empty($obj[$value["sport_name{$lang}"]])){
+                    $obj[$value["sport_name{$lang}"]] = array(
                         "type" => array(
-                            $value['sport_type'] => $data
+                            $value["sport_type{$lang}"] => $data
                         )
                     );
                 }else{
-                    $obj[$value['sport_name']]["type"] += array(
+                    $obj[$value["sport_name{$lang}"]]["type"] += array(
                         $value['sport_type'] => $data
                     );
                 }
