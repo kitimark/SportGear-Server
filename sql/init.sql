@@ -39,6 +39,7 @@ CREATE TABLE account_staff(
     username VARCHAR(255) NOT NULL,
     pwd VARCHAR(255) NOT NULL,
     FOREIGN KEY (fk_account) REFERENCES account(id)
+    UNIQUE KEY(username)
 );
 CREATE TABLE account(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
