@@ -17,26 +17,46 @@ CREATE TABLE account_uni(
     UNIQUE KEY(uni)
 );
 
+CREATE TABLE account_role(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    role_type VARCHAR(1) NOT NULL,
+    role_name VARCHAR(255) NOT NULL,
+    role_des VARCHAR(255),
+    UNIQUE KEY(role_type)
+);
+
+INSERT INTO account_role(role_type,role_name) VALUES ("A","กกบ"),
+("B","นักกีฬา/ผู้เข้าร่วม"),
+("C","เฮดเกัยร์"),
+("D","ผู้เข้าประกวดดาวเดือน"),
+("E","ผู้ดูแลดาวเดือน"),
+("F","คณาจารย์/เจ้าหน้าที่"),
+("G","สตาฟ");
+
 CREATE TABLE account(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    sid VARCHAR(13) NOT NULL,
+    sid VARCHAR(25) NOT NULL,
     uni VARCHAR(7) NOT NULL,
     fname VARCHAR(128) NOT NULL,
     lname VARCHAR(128) NOT NULL,
+    type_role VARCHAR(1) NOT NULL,
     email VARCHAR(255),
     gender ENUM('Male','Female'),
     pwd VARCHAR(255) NOT NULL,
     img_url text,
     details JSON,
     CHECK (JSON_VALID(details)),
-    UNIQUE KEY (sid),
-    FOREIGN KEY (uni) REFERENCES account_uni(uni)
+    UNIQUE KEY (sid,uni),
+    FOREIGN KEY (uni) REFERENCES account_uni(uni),
+    FOREIGN KEY (type_role) REFERENCES account_role(role_type)
 );
 
 CREATE TABLE sport(
     id VARCHAR(4) NOT NULL PRIMARY KEY,
     sport_name VARCHAR(255) NOT NULL,
     sport_type VARCHAR(255) NOT NULL,
+    sport_name_th VARCHAR(255),
+    sport_type_th VARCHAR(255),
     each_team INT,
     teams INT,
     gender ENUM("Male","Female","Male&Female"),
