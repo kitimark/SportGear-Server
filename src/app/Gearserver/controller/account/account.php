@@ -230,7 +230,6 @@ class account{
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
         $uni = strtolower($decoded['uni']);
-        $role_type = empty($params['role_type']) ? 'B' : strtoupper($params['role_type']);
         try{
             foreach($params as $key=>$user){
                 if(strlen($user['sid']) != 13 || !is_numeric($user['sid'])){
@@ -246,15 +245,15 @@ class account{
                 $params[$key]['uni'] = $uni;
             }
             
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES ';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES ';
             $sql .= implode(',', array_map(function($el) {
-                return '(?, ?, ?, ?, ?, ?, ?, ?)';
+                return '(?, ?, ?, ?, ?, ?, ?, ?, ?)';
             }, $params));
             $sql .= ';';
             $args = array();
             foreach($params as $user) {
                 $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']));
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']), empty($user['role_type']) ? 'B' : strtoupper($user['role_type']));
             }
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute($args);
