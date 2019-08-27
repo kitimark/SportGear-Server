@@ -1,7 +1,7 @@
 <?php
 $config = [
     'settings' => [
-        'displayErrorDetails' => getenv('displayErrorDetails'),
+        'displayErrorDetails' => (strcasecmp(strtolower(getenv('displayErrorDetails')), 'true') ? false : true),
         'addContentLengthHeader' => false,
         'determineRouteBeforeAppMiddleware' => true,
 
