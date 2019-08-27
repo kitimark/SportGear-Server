@@ -179,6 +179,7 @@ class account{
         $email = $params['email'];
         $gender = $params['gender'];// Male= 1 Female= 2
         $details = $params['datails'];
+        $role_type = empty($params['role_type']) ? 'B' : strtoupper($params['role_type']);
 
         if(strlen($sid) != 13 || !is_numeric($sid)){
             return $response->withStatus(403)->withJson(array(
@@ -193,7 +194,7 @@ class account{
 
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details)';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details,:type_role)';
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
@@ -203,6 +204,7 @@ class account{
             $stmt->bindParam("gender", $gender);
             $stmt->bindParam("hash", $hash);
             $stmt->bindParam("details", $details);
+            $stmt->bindParam("type_role", $role_type);
             $stmt->execute();
             $id = $this->container->db->lastInsertId();
             return $response->withJson(array(
@@ -227,7 +229,8 @@ class account{
     public function Addusers(Request $request,Response $response){
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
-        $uni = strtolower($decoded['uni']);  
+        $uni = strtolower($decoded['uni']);
+        $role_type = empty($params['role_type']) ? 'B' : strtoupper($params['role_type']);
         try{
             foreach($params as $key=>$user){
                 if(strlen($user['sid']) != 13 || !is_numeric($user['sid'])){
