@@ -35,7 +35,7 @@ class account{
                 return $response->withStatus(204);
             }
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
         }
     }
     public function Update_ImageURL(Request $request,Response $response,$args){
@@ -82,7 +82,7 @@ class account{
             }
 
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
     }
@@ -111,7 +111,7 @@ class account{
                 'message' => 'Update user'
             ));
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
     }
@@ -138,7 +138,7 @@ class account{
                 'message' => 'Update user details'
             ));
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
     }
@@ -154,7 +154,7 @@ class account{
                 $stmt->bindParam("id", $user_id);
                 $stmt->execute();
             }catch(PDOException $e){
-                $this->container->logger->addInfo($e);
+                $this->container->logger->addInfo($e->getMessage());
                 return $response->withStatus(403);
             }
             $sql = 'DELETE FROM account WHERE sid=:sid';
@@ -165,7 +165,7 @@ class account{
                 'message' => 'Delete User'
             ));
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(403);
         }
     }
@@ -216,7 +216,7 @@ class account{
         ));
 
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withJson(array(
                 "code" => $e->getCode(),
                 "message" => $e->getMessage()
@@ -261,7 +261,7 @@ class account{
                 "params" => $args
             ));
         }catch(PDOException $e){
-            $this->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
         }
     }
 }
