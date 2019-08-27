@@ -16,7 +16,7 @@ class dev{
         $this->container = $container;
     }
     protected function sentMail_db($uni){
-        $file_url = 'https://dl.dropboxusercontent.com/s/b43rbftbwz3qxui/uniMap.json';
+        //$file_url = 'https://dl.dropboxusercontent.com/s/b43rbftbwz3qxui/uniMap.json';
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
             $stmt = $this->container->db->prepare($sql);
@@ -26,7 +26,7 @@ class dev{
             if(count($result) === 0){
                 //TODO
                 //will select real email(read from file or some other table) and auto generate pwd to insert into account_uni
-                $json = file_get_contents($file_url);//load from url
+                //$json = file_get_contents($file_url);//load from url
                 
                 /*
                 {
@@ -36,24 +36,36 @@ class dev{
                     }
                 }
                 */
-
-                $data = json_decode($json,true);
-                if(!array_key_exists($uni, $data)){
-                    return false;
+                try{
+                    $sql = 'SELECT * FROM mail_info WHERE uni=:uni';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("uni",  $uni);
+                    $stmt->execute();
+                    $data = $stmt->fetchAll();
+                    if(count($data) === 0 ){
+                        return false;
+                    }
+                    
+                }catch(PDOException $e){
+                    $this->container->logger->addInfo($e->getMessage());
                 }
-                $email = $data[$uni]['email'];
-                $uni_full_name = $data[$uni]['unifullname'];
+                $email = $data[0]['email'];
+                $uni_full_name = $data[0]['fullname'];
+                $owner_fname = $data[0]['owner_fname'];
+                $owner_lname = $data[0]['owner_lname'];
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return false;
                 }
                 $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                 $hash = password_hash($pwd, PASSWORD_DEFAULT);
-                $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd) VALUES (:uni,:email,:uni_full_name,:uni_pwd)';
+                $sql = 'INSERT INTO account_uni(uni,email,uni_full_name,uni_pwd,owner_fname,owner_lname) VALUES (:uni,:email,:uni_full_name,:uni_pwd,:owner_fname,:owner_lname)';
                 $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("uni",$uni);
                 $stmt->bindParam("email",$email);
                 $stmt->bindParam("uni_full_name",$uni_full_name);
                 $stmt->bindParam("uni_pwd",$hash);
+                $stmt->bindParam("owner_fname",$owner_fname);
+                $stmt->bindParam("owner_lname",$owner_lname);
                 $stmt->execute();
                 try{
                     $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
@@ -64,7 +76,7 @@ class dev{
                     $result[0]['uni_pwd'] = $pwd;
                     return $result;
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e);
+                    $this->container->logger->addInfo($e->getMessage());
                     return false;
                 }
 
@@ -81,12 +93,12 @@ class dev{
                     $result[0]['uni_pwd'] = $pwd;
                     return $result;
                 }catch(PDOException $e){
-                    $this->logger->addInfo($e);
+                    $this->container->logger->addInfo($e->getMessage());
                     return false;
                 }
             }
         }catch(PDOException $e){
-            $this->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return false;
         }
     }
