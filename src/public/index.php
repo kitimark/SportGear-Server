@@ -9,6 +9,7 @@ if (PHP_SAPI == 'cli-server') {
         return false;
     }
 }
+
 //display the error
 error_reporting(E_ALL);
 set_error_handler(function ($severity, $message, $file, $line) {

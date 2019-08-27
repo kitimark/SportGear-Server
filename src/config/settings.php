@@ -1,7 +1,7 @@
 <?php
 $config = [
     'settings' => [
-        'displayErrorDetails' => true,
+        'displayErrorDetails' => getenv('displayErrorDetails'),
         'addContentLengthHeader' => false,
         'determineRouteBeforeAppMiddleware' => true,
 
