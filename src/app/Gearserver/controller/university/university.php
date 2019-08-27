@@ -74,7 +74,8 @@ class university{
     public function Login(Request $request,Response $response){
         
         $params = $request->getParsedBody();
-
+        $date = new DateTime();
+        $current_dt = $date->format("Y-m-d H:i:s");
         if(empty($params['uni']) || empty($params['pwd'])){
             return $response->withJson(array(
                 'status' => 'error',
@@ -90,6 +91,17 @@ class university{
                 $result = $stmt->fetchAll();
                 if(count($result) > 0){
                     if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
+                        // update last_login
+                        try{
+                            $sql = "UPDATE account_uni SET last_login=:current_dt WHERE email = :email";
+                            $stmt = $this->container->db->prepare($sql);
+                            $stmt->bindParam("email",$params['uni']);
+                            $stmt->bindParam("current_dt",$current_dt);
+                            $stmt->execute();
+                        }catch(PDOException $e){
+                            $this->container->logger->addInfo($e->getMessage());
+                            return $response->withStatus(401);
+                        }
                         $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
                         return $this->response->withJson(array(
                             'message' => 'login complete!',
@@ -120,6 +132,18 @@ class university{
                 $result = $stmt->fetchAll();
                 if(count($result) > 0){
                     if(password_verify($params['pwd'], $result[0]['uni_pwd'])){
+                        // update last_login
+                        try{
+                            $sql = "UPDATE account_uni SET last_login=:current_dt WHERE uni = :uni";
+                            $stmt = $this->container->db->prepare($sql);
+                            $stmt->bindParam("uni",$params['uni']);
+                            $stmt->bindParam("current_dt",$current_dt);
+                            $stmt->execute();
+                        }catch(PDOException $e){
+                            $this->container->logger->addInfo($e->getMessage());
+                            return $response->withStatus(401);
+                        }
+                        
                         $this->response = $response->withAddedHeader('Authorization' , $this->JWTtoken($request));
                         return $this->response->withJson(array(
                             'message' => 'login complete!',
