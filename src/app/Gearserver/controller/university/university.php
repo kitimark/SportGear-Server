@@ -39,6 +39,7 @@ class university{
     #return sid and info
     public function Info(Request $request,Response $response){
         $decoded = $request->getAttribute('jwt');
+        $params = $request->getQueryParams();
         if(empty($decoded['uni'])){
             return $response->withJson(array(
                 'status' => 'error',
@@ -46,10 +47,14 @@ class university{
             ))->withStatus(403);
         }
 
+        $gender = (empty($params['gender']) ? null : $params['gender']); 
+
         try{
             $sql = "SELECT id,sid,email,fname,lname,gender,details,img_url FROM account WHERE uni = :uni";
+            $sql .= (empty($gender) ? '' : ' AND gender = :gender');
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("uni",$decoded['uni']);
+            if (!empty($gender)) $stmt->bindParam("gender", $gender);
             $stmt->execute();
             $result = $stmt->fetchAll();
             $result = array_map(function($data){
