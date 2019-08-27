@@ -181,7 +181,7 @@ CREATE TABLE sport_match_8v8(
 
 CREATE TABLE mail_info(
     id INT NOT NULL AUTO_INCREMENT,
-    uni VARCHAR(4) NOT NULL,
+    uni VARCHAR(7) NOT NULL,
     email VARCHAR(255) NOT NULL,
     fullname VARCHAR(255) NOT NULL,
     owner_fname VARCHAR(255) NOT NULL,
