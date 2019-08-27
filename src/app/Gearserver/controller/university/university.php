@@ -66,7 +66,7 @@ class university{
             }, $result);
             return $response->withJson($result);
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
     }
@@ -108,7 +108,7 @@ class university{
                     ))->withStatus(401);
                 }
             }catch(PDOException $e){
-                $this->container->logger->addInfo($e);
+                $this->container->logger->addInfo($e->getMessage());
                 return $response->withStatus(401);
             }
         }else{
@@ -138,7 +138,7 @@ class university{
                     ))->withStatus(401);
                 }
             }catch(PDOException $e){
-                $this->container->logger->addInfo($e);
+                $this->container->logger->addInfo($e->getMessage());
                 return $response->withStatus(401);
             }
         }
@@ -158,7 +158,7 @@ class university{
                 'fullname' => $result[0]['uni_full_name']
             ));
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
     }
@@ -186,14 +186,14 @@ class university{
                     $stmt->execute();
                     return $response->withStatus(200);
                 }catch(PDOException $e){
-                    $this->container->logger->addInfo($e);
+                    $this->container->logger->addInfo($e->getMessage());
                     return $response->withStatus(403);
                 }
             }else{
                 return $response->withStatus(403);
             }
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(403);
         }
     }

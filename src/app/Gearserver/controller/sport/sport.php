@@ -40,7 +40,7 @@ class sport{
             }
             return $response->withJson($obj);
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
         }
     }
 
@@ -70,7 +70,7 @@ class sport{
             $result = $stmt->fetchAll(PDO::FETCH_GROUP);
             return $response->withJson($result);
         }catch(PDOException $e){
-            $this->container->logger->addInfo($e);
+            $this->container->logger->addInfo($e->getMessage());
         }
     }
     
