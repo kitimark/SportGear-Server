@@ -38,7 +38,8 @@ CREATE TABLE account_staff(
     fk_account INT NOT NULL,
     username VARCHAR(255) NOT NULL,
     pwd VARCHAR(255) NOT NULL,
-    FOREIGN KEY (fk_account) REFERENCES account(id)
+    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_account) REFERENCES account(id),
     UNIQUE KEY(username)
 );
 CREATE TABLE account(
