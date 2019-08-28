@@ -293,11 +293,12 @@ class account{
                 $result = $stmt->execute();
                 $real_user = $result->fetchAll();
                 if(count($real_user > 0)){
+                    $hash = password_hash($pwd, PASSWORD_DEFAULT);
                     $sql = 'INSERT INTO account_staff(fk_account,username,pwd) VALUES (:fk_account,:username,:pwd)';
                     $stmt = $this->container->db->prepare($sql);
                     $stmt->bindParam("fk_account", $fk_account);
                     $stmt->bindParam("username", $username);
-                    $stmt->bindParam("pwd", $pwd);
+                    $stmt->bindParam("pwd", $hash);
                     $result = $stmt->execute();
                     return $response->withJson(array(
                         "message" => "User { " . $username . " } registed !"
