@@ -6,6 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \PDOException;
 use \DateTime;
+use \Firebase\JWT\JWT;
 class account{
     protected $container;
 
@@ -120,7 +121,7 @@ class account{
         $user_id = $args['id'];// api/{id}/details
         $params = $request->getParsedBody();
         $details = $params['details'];
-        $ob = json_decode($json);
+        $ob = json_decode($details);
         if($ob === null) {
             // $ob is null because the json cannot be decoded
             return $response->withStatus(403);
@@ -143,6 +144,8 @@ class account{
         }
     }
     public function Deleteuser(Request $request,Response $response,$args){
+        $params = $request->getParsedBody();
+        $sid = $params['sid'];
         $user_id = $args['id'];// api/{id}/delete
         if(empty($user_id)){
             return $response->withStatus(403);
@@ -320,16 +323,80 @@ class account{
 
     public function Login(Request $request,Response $response){
         $params = $request->getParsedBody();
+        $date = new DateTime();
         $username = $params['username'];
         $pwd = $params['pwd'];
-
+        $current_dt = $date->format("Y-m-d H:i:s");
         try{
             //TODO
             $sql = 'SELECT * FROM account_staff WHERE username = :username';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("username", $username);
+            $result = $stmt->execute();
+            $user = $result->fetchAll();
+            if(count($user) > 0){
+                if(password_verify($pwd,$user[0]['pwd'])){
+                    // Update last_login
+                    try{
+                        $sql = 'UPDATE account_staff SET last_login=:last_login WHERE username=:username';
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("username", $username);
+                        $stmt->bindParam("last_login", $current_dt);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->container->logger->addInfo($e->getMessage());
+                    }
+                    // GenToken
+                    try{
+                        // get role
+                        $sql = 'SELECT type_role FROM account WHERE id=:id';
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("id", $user[0]['fk_account']);
+                        $result = $stmt->execute();
+                        $user_role = $result->fetchAll();
+                    }catch(PDOException $e){
+                        $this->container->logger->addInfo($e->getMessage());
+                    }
+                    // Token
+                    $ipAddress = $request->getAttribute('ip_address');
+                    $start_time = $date->getTimestamp();
+                    $end_time = $start_time + 3600;
+                    $uni = $request->getParsedBody()['uni'];
+                    $settings = $this->container->get('settings')['token'];
+                    $key = $settings['key'];
+                    $token = array(
+                        "iat" => $date->getTimestamp(),
+                        "nbf" => $start_time,
+                        "exp" => $end_time,
+                        "roles" => $user_role[0]['type_role'],
+                        "uni" => $uni,
+                        "ip" => $ipAddress
+                    );
+                    $jwt = 'Bearer ' . JWT::encode($token, $key);
+                    // insert token
+                    $this->response = $response->withAddedHeader('Authorization' , $jwt);
+                    // res back
+                    return $this->response->withJson(array(
+                        'message' => 'login complete!',
+                        'id' => $user[0]['id'],
+                        'role' => $user_role[0]['type_role']
+                    ));
+                    
+                }else{
+                    return $response->withJson(array(
+                        "message" => "Password not match!"
+                    ))->withStatus(401);
+                }
+            }else{
+                return $response->withJson(array(
+                    "message" => "User : { ". $username ." } not exists"
+                ))->withStatus(401);
+            }
 
         }catch(PDOException $e){
             $this->container->logger->addInfo($e->getMessage());
         }
         
     }
+
 }
