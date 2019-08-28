@@ -266,4 +266,14 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
+
+    public function Login(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        try{
+            
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e->getMessage());
+        }
+        
+    }
 }
