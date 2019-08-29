@@ -368,7 +368,7 @@ class account{
                         "iat" => $date->getTimestamp(),
                         "nbf" => $start_time,
                         "exp" => $end_time,
-                        "roles" => $user_role[0]['type_role'],
+                        "roles" => ['staff'],
                         "uni" => $uni,
                         "ip" => $ipAddress
                     );
