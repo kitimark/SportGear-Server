@@ -5,7 +5,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \PDOException;
-
+use \DateTime;
+use \Firebase\JWT\JWT;
 class account{
     protected $container;
 
@@ -120,7 +121,7 @@ class account{
         $user_id = $args['id'];// api/{id}/details
         $params = $request->getParsedBody();
         $details = $params['details'];
-        $ob = json_decode($json);
+        $ob = json_decode($details);
         if($ob === null) {
             // $ob is null because the json cannot be decoded
             return $response->withStatus(403);
@@ -143,6 +144,8 @@ class account{
         }
     }
     public function Deleteuser(Request $request,Response $response,$args){
+        $params = $request->getParsedBody();
+        $sid = $params['sid'];
         $user_id = $args['id'];// api/{id}/delete
         if(empty($user_id)){
             return $response->withStatus(403);
@@ -179,6 +182,7 @@ class account{
         $email = $params['email'];
         $gender = $params['gender'];// Male= 1 Female= 2
         $details = $params['datails'];
+        $role_type = empty($params['role_type']) ? 'B' : strtoupper($params['role_type']);
 
         if(strlen($sid) != 13 || !is_numeric($sid)){
             return $response->withStatus(403)->withJson(array(
@@ -193,7 +197,7 @@ class account{
 
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details)';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details,:type_role)';
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
@@ -203,6 +207,7 @@ class account{
             $stmt->bindParam("gender", $gender);
             $stmt->bindParam("hash", $hash);
             $stmt->bindParam("details", $details);
+            $stmt->bindParam("type_role", $role_type);
             $stmt->execute();
             $id = $this->container->db->lastInsertId();
             return $response->withJson(array(
@@ -227,7 +232,7 @@ class account{
     public function Addusers(Request $request,Response $response){
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
-        $uni = strtolower($decoded['uni']);  
+        $uni = strtolower($decoded['uni']);
         try{
             foreach($params as $key=>$user){
                 if(strlen($user['sid']) != 13 || !is_numeric($user['sid'])){
@@ -243,15 +248,15 @@ class account{
                 $params[$key]['uni'] = $uni;
             }
             
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details) VALUES ';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES ';
             $sql .= implode(',', array_map(function($el) {
-                return '(?, ?, ?, ?, ?, ?, ?, ?)';
+                return '(?, ?, ?, ?, ?, ?, ?, ?, ?)';
             }, $params));
             $sql .= ';';
             $args = array();
             foreach($params as $user) {
                 $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']));
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']), empty($user['role_type']) ? 'B' : strtoupper($user['role_type']));
             }
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute($args);
@@ -264,4 +269,134 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
+    public function Register(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        // Require fk_account to register (user need to exist in account table first)
+        $fk_account = $params['id'];// id form account table
+        $username = $params['username'];
+        $pwd = $params['pwd'];
+
+        try{
+            //TODO
+            $sql = 'SELECT * FROM account_staff WHERE username = :username';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("username", $username);
+            $result = $stmt->execute();
+            $user = $result->fetchAll();
+            if($user > 0){
+                return $response->withJson(array(
+                    "message" => "User : { " . $username . " } already exists"
+                ))->withStatus(403);
+            }else{
+                // user not exist can register to database
+                // check exists user in account to prevent database constraints
+                $sql = 'SELECT * FROM account WHERE id = :id';
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("id", $fk_account);
+                $result = $stmt->execute();
+                $real_user = $result->fetchAll();
+                if(count($real_user > 0)){
+                    $hash = password_hash($pwd, PASSWORD_DEFAULT);
+                    $sql = 'INSERT INTO account_staff(fk_account,username,pwd) VALUES (:fk_account,:username,:pwd)';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("fk_account", $fk_account);
+                    $stmt->bindParam("username", $username);
+                    $stmt->bindParam("pwd", $hash);
+                    $result = $stmt->execute();
+                    return $response->withJson(array(
+                        "message" => "User { " . $username . " } registed !"
+                    ));
+
+                }else{
+                    return $response->withJson(array(
+                        "message" => "User not exist in account"
+                    ))->withStatus(401);
+                }
+
+            }
+            
+
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e->getMessage());
+        }
+    }
+
+    public function Login(Request $request,Response $response){
+        $params = $request->getParsedBody();
+        $date = new DateTime();
+        $username = $params['username'];
+        $pwd = $params['pwd'];
+        $current_dt = $date->format("Y-m-d H:i:s");
+        try{
+            //TODO
+            $sql = 'SELECT * FROM account_staff WHERE username = :username';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("username", $username);
+            $result = $stmt->execute();
+            $user = $result->fetchAll();
+            if(count($user) > 0){
+                if(password_verify($pwd,$user[0]['pwd'])){
+                    // Update last_login
+                    try{
+                        $sql = 'UPDATE account_staff SET last_login=:last_login WHERE username=:username';
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("username", $username);
+                        $stmt->bindParam("last_login", $current_dt);
+                        $stmt->execute();
+                    }catch(PDOException $e){
+                        $this->container->logger->addInfo($e->getMessage());
+                    }
+                    // GenToken
+                    try{
+                        // get role
+                        $sql = 'SELECT type_role FROM account WHERE id=:id';
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("id", $user[0]['fk_account']);
+                        $result = $stmt->execute();
+                        $user_role = $result->fetchAll();
+                    }catch(PDOException $e){
+                        $this->container->logger->addInfo($e->getMessage());
+                    }
+                    // Token
+                    $ipAddress = $request->getAttribute('ip_address');
+                    $start_time = $date->getTimestamp();
+                    $end_time = $start_time + 3600;
+                    $uni = $request->getParsedBody()['uni'];
+                    $settings = $this->container->get('settings')['token'];
+                    $key = $settings['key'];
+                    $token = array(
+                        "iat" => $date->getTimestamp(),
+                        "nbf" => $start_time,
+                        "exp" => $end_time,
+                        "roles" => ['staff'],
+                        "uni" => $uni,
+                        "ip" => $ipAddress
+                    );
+                    $jwt = 'Bearer ' . JWT::encode($token, $key);
+                    // insert token
+                    $this->response = $response->withAddedHeader('Authorization' , $jwt);
+                    // res back
+                    return $this->response->withJson(array(
+                        'message' => 'login complete!',
+                        'id' => $user[0]['id'],
+                        'role' => $user_role[0]['type_role']
+                    ));
+                    
+                }else{
+                    return $response->withJson(array(
+                        "message" => "Password not match!"
+                    ))->withStatus(401);
+                }
+            }else{
+                return $response->withJson(array(
+                    "message" => "User : { ". $username ." } not exists"
+                ))->withStatus(401);
+            }
+
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e->getMessage());
+        }
+        
+    }
+
 }
