@@ -5,6 +5,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \PDOException;
+use Slim\Http\UploadedFile;
 
 class account{
     protected $container;
@@ -37,6 +38,55 @@ class account{
         }catch(PDOException $e){
             $this->container->logger->addInfo($e->getMessage());
         }
+    }
+    public function Upload_Image_Local(Request $request,Response $response){
+        // upload img in local machine
+        // @param int $id
+        // @return string json_massage
+        $params = $request->getParsedBody();
+        $id = $params['id'];// key for select user
+        $files = $request->getUploadedFiles();
+        $directory  = __DIR__ . '../upload_local/img';
+        $supported_image = array(
+            'gif',
+            'jpg',
+            'jpeg',
+            'png'
+        );
+
+        $extension = strtolower(pathinfo($files->getClientFilename(), PATHINFO_EXTENSION));
+        $file = $files['picture'];
+        if ($file->getError() === UPLOAD_ERR_OK) {
+            // filter files type
+            $filename = $this->moveUploadedFile($directory, $file);
+            // TODO
+            try{
+                $sql = 'UPDATE account SET img_url = :img_name WHERE id = :id';
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("img_name", $filename);
+                $stmt->bindParam("id", $id);
+                $stmt->execute();
+                
+                $response->withJson(array(
+                    "massage" => "uploaded" . $filename
+                ));
+                
+            }catch(PDOException $e){
+                $this->container->logger->addInfo($e->getMessage());
+            }
+        }
+    }
+
+    // Ref http://www.slimframework.com/docs/v3/cookbook/uploading-files.html
+
+    private function moveUploadedFile($directory, UploadedFile $uploadedFile){
+        $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+        $basename = bin2hex(random_bytes(8)); // see http://php.net/manual/en/function.random-bytes.php
+        $filename = sprintf('%s.%0.8s', $basename, $extension);
+    
+        $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
+    
+        return $filename;
     }
     public function Update_ImageURL(Request $request,Response $response,$args){
         $params = $request->getParsedBody();
