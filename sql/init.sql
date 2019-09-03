@@ -38,8 +38,11 @@ CREATE TABLE account_staff(
     fk_account INT NOT NULL,
     username VARCHAR(255) NOT NULL,
     pwd VARCHAR(255) NOT NULL,
-    FOREIGN KEY (fk_account) REFERENCES account(id)
+    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_account) REFERENCES account(id),
+    UNIQUE KEY(username)
 );
+
 CREATE TABLE account(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     sid VARCHAR(25) NOT NULL,
@@ -56,6 +59,15 @@ CREATE TABLE account(
     UNIQUE KEY (sid,uni),
     FOREIGN KEY (uni) REFERENCES account_uni(uni),
     FOREIGN KEY (type_role) REFERENCES account_role(role_type)
+);
+
+CREATE TABLE account_staff(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    fk_account INT NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    pwd VARCHAR(255) NOT NULL,
+    FOREIGN KEY (fk_account) REFERENCES account(id),
+    UNIQUE KEY (username)
 );
 
 CREATE TABLE sport(
