@@ -281,6 +281,7 @@ $app->group('/api/v1',function() use ($app){
         $app->get('', Gearserver\controller\university::class . ':Session');
         $app->group('/users' ,function() use($app){
             $app->get('/info', Gearserver\controller\university::class . ':Info');
+            $app->delete('', Gearserver\controller\account::class . ':DeleteUsers');
         });
         $app->post('/password_change',Gearserver\controller\university::class . ':PasswordChange');
         $app->get('/sid', function(Request $request, Response $response, $args){

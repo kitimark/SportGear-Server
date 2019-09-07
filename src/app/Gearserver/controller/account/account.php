@@ -169,6 +169,30 @@ class account{
             return $response->withStatus(403);
         }
     }
+
+    public function DeleteUsers(Request $request, Response $response) {
+        $params = $request->getParsedBody();
+        $decoded = $request->getAttribute('jwt');
+
+        $users = $params['users'];
+
+        try {
+            $this->container->db->beginTransaction();
+            $sql = "DELETE FROM account WHERE uni = :uni AND sid = :sid";
+            $stmt = $this->container->db->prepare($sql);
+            
+            foreach ($users as $user) {
+                $stmt->execute(array(':uni'=>$decoded['uni'], ':sid'=>$user));
+            }
+            $this->container->db->commit();
+            return $response;
+        } catch(PDOException $e) {
+            $this->container->db->rollBack();
+            $this->container->logger->addInfo($e);
+            return $response->withStatus(500);
+        }
+    }
+
     public function Adduser(Request $request,Response $response){
         $params = $request->getParsedBody();
         $decoded = $request->getAttribute('jwt');
