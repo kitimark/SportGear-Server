@@ -58,7 +58,7 @@ CREATE TABLE sport_player(
     fk_account_id INT NOT NULL,
     fk_sport_id VARCHAR(4) NOT NULL,
     FOREIGN KEY (fk_team_id) REFERENCES sport_team(id),
-    FOREIGN KEY (fk_account_id) REFERENCES account(id),
+    FOREIGN KEY (fk_account_id) REFERENCES account(id) ON DELETE CASCADE,
     FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
     PRIMARY KEY(fk_team_id,fk_account_id,fk_sport_id)
 );
