@@ -283,22 +283,6 @@ $app->group('/api/v1',function() use ($app){
             $app->get('/info', Gearserver\controller\university::class . ':Info');
         });
         $app->post('/password_change',Gearserver\controller\university::class . ':PasswordChange');
-        $app->get('/sid', function(Request $request, Response $response, $args){
-            $decoded = $request->getAttribute('jwt');
-            try{
-                $sql = "SELECT sid FROM account WHERE uni=:uni";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("uni",$decoded['uni']);
-                $stmt->execute();
-                $result = $stmt->fetchAll();
-                $result = array_map(function($data){
-                    return $data['sid'];
-                }, $result);
-                return $this->response->withJson($result);
-            }catch(PDOException $e){
-                $this->logger->addInfo($e);
-            }
-        });
         $app->post('/login',Gearserver\controller\university::class . ':Login');
         /*
 
