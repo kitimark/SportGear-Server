@@ -5,6 +5,8 @@ SET character_set_server = 'utf8';
 
 use gearsport;
 
+SET FOREIGN_KEY_CHECKS=0;
+
 CREATE TABLE account_uni(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     uni VARCHAR(7) NOT NULL,
@@ -219,3 +221,4 @@ CREATE TABLE mail_info(
     UNIQUE KEY(uni)
 )
 
+SET FOREIGN_KEY_CHECKS=1;
