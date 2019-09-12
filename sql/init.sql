@@ -63,15 +63,6 @@ CREATE TABLE account(
     FOREIGN KEY (type_role) REFERENCES account_role(role_type)
 );
 
-CREATE TABLE account_staff(
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    fk_account INT NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    pwd VARCHAR(255) NOT NULL,
-    FOREIGN KEY (fk_account) REFERENCES account(id),
-    UNIQUE KEY (username)
-);
-
 CREATE TABLE sport(
     id VARCHAR(4) NOT NULL PRIMARY KEY,
     sport_name VARCHAR(255) NOT NULL,
@@ -230,5 +221,3 @@ CREATE TABLE mail_info(
     PRIMARY KEY (id),
     UNIQUE KEY(uni)
 )
-
-SET FOREIGN_KEY_CHECKS=1;
