@@ -17,6 +17,26 @@ class dev{
     }
     protected function sentMail_db($uni){
         //$file_url = 'https://dl.dropboxusercontent.com/s/b43rbftbwz3qxui/uniMap.json';
+
+        //load data first
+        try{
+            $sql = 'SELECT * FROM mail_info WHERE uni=:uni';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni",  $uni);
+            $stmt->execute();
+            $data = $stmt->fetchAll();
+            if(count($data) === 0 ){
+                return false;
+            }
+            
+        }catch(PDOException $e){
+            $this->container->logger->addInfo($e->getMessage());
+        }
+        $email = $data[0]['email'];
+        $uni_full_name = $data[0]['fullname'];
+        $owner_fname = $data[0]['owner_fname'];
+        $owner_lname = $data[0]['owner_lname'];
+
         try{
             $sql = 'SELECT * FROM account_uni WHERE uni=:uni';
             $stmt = $this->container->db->prepare($sql);
@@ -36,23 +56,6 @@ class dev{
                     }
                 }
                 */
-                try{
-                    $sql = 'SELECT * FROM mail_info WHERE uni=:uni';
-                    $stmt = $this->container->db->prepare($sql);
-                    $stmt->bindParam("uni",  $uni);
-                    $stmt->execute();
-                    $data = $stmt->fetchAll();
-                    if(count($data) === 0 ){
-                        return false;
-                    }
-                    
-                }catch(PDOException $e){
-                    $this->container->logger->addInfo($e->getMessage());
-                }
-                $email = $data[0]['email'];
-                $uni_full_name = $data[0]['fullname'];
-                $owner_fname = $data[0]['owner_fname'];
-                $owner_lname = $data[0]['owner_lname'];
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return false;
                 }
@@ -85,10 +88,14 @@ class dev{
                     //if exists update it with new password
                     $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                     $hash = password_hash($pwd, PASSWORD_DEFAULT);
-                    $sql = 'UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni=:uni';
+                    $sql = 'UPDATE account_uni SET email=:email,uni_full_name=:uni_full_name,owner_fname=:owner_fname,owner_lname=:owner_lname,uni_pwd=:uni_pwd WHERE uni=:uni';
                     $stmt = $this->container->db->prepare($sql);
                     $stmt->bindParam("uni",$uni);
                     $stmt->bindParam("uni_pwd",$hash);
+                    $stmt->bindParam("email",$email);
+                    $stmt->bindParam("uni_full_name",$uni_full_name);
+                    $stmt->bindParam("owner_fname",$owner_fname);
+                    $stmt->bindParam("owner_lname",$owner_lname);
                     $stmt->execute();
                     $result[0]['uni_pwd'] = $pwd;
                     return $result;
