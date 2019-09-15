@@ -248,7 +248,7 @@ class account{
 
         $hash = password_hash($params['password'], PASSWORD_DEFAULT);
         try{
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:hash,:details,:type_role)';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,details,type_role) VALUES (:sid,:uni,:fname,:lname,:email,:gender,:details,:type_role)';
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("sid", $sid);
             $stmt->bindParam("uni",  $uni);
@@ -256,7 +256,7 @@ class account{
             $stmt->bindParam("lname", $lname);
             $stmt->bindParam("email", $email);
             $stmt->bindParam("gender", $gender);
-            $stmt->bindParam("hash", $hash);
+            //$stmt->bindParam("hash", $hash);
             $stmt->bindParam("details", $details);
             $stmt->bindParam("type_role", $role_type);
             $stmt->execute();
@@ -267,8 +267,7 @@ class account{
                 "uni" => $uni,
                 "fname" => $fname,
                 "lname" => $lname,
-                "email" => $email,
-                "pwd_hash" => $hash,
+                "email" => $email
         ));
 
         }catch(PDOException $e){
@@ -299,15 +298,15 @@ class account{
                 $params[$key]['uni'] = $uni;
             }
             
-            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender,pwd, details,type_role) VALUES ';
+            $sql = 'INSERT INTO account(sid,uni,fname,lname,email,gender, details,type_role) VALUES ';
             $sql .= implode(',', array_map(function($el) {
-                return '(?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                return '(?, ?, ?, ?, ?, ?, ?, ?)';
             }, $params));
             $sql .= ';';
             $args = array();
             foreach($params as $user) {
-                $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], $hash, (empty($user['details']) ? NULL : $user['details']), empty($user['role_type']) ? 'B' : strtoupper($user['role_type']));
+                //$hash = password_hash($user['password'], PASSWORD_DEFAULT);
+                array_push($args, $user['sid'], $user['uni'], $user['fname'], $user['lname'], $user['email'], $user['gender'], (empty($user['details']) ? NULL : $user['details']), empty($user['role_type']) ? 'B' : strtoupper($user['role_type']));
             }
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute($args);
