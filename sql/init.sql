@@ -54,7 +54,6 @@ CREATE TABLE account(
     type_role VARCHAR(1) NOT NULL,
     email VARCHAR(255),
     gender ENUM('Male','Female'),
-    pwd VARCHAR(255) NOT NULL,
     img_url text,
     details JSON,
     CHECK (JSON_VALID(details)),
