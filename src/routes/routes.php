@@ -48,6 +48,7 @@ $app->group('/api/v1',function() use ($app){
         $app->patch('/password',Gearserver\controller\university::class . ':PasswordChange');
         $app->post('/login',Gearserver\controller\university::class . ':Login');
         $app->group('/users' ,function() use($app){
+            $app->post('/image', Gearserver\controller\account::class . ':Upload_Image_Local');
             $app->get('/info', Gearserver\controller\university::class . ':Info');
             $app->delete('', Gearserver\controller\account::class . ':DeleteUsers');
         });
