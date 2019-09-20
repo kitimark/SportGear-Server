@@ -3,3 +3,4 @@
 .env
 src/vendor
 src/logs
+src/upload_local
