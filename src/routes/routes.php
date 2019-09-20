@@ -45,7 +45,7 @@ $app->group('/api/v1',function() use ($app){
     });
     $app->group('/university',function() use ($app){
         $app->get('', Gearserver\controller\university::class . ':Session');
-        $app->patch('/password_change',Gearserver\controller\university::class . ':PasswordChange');
+        $app->patch('/password',Gearserver\controller\university::class . ':PasswordChange');
         $app->post('/login',Gearserver\controller\university::class . ':Login');
         $app->group('/users' ,function() use($app){
             $app->get('/info', Gearserver\controller\university::class . ':Info');
