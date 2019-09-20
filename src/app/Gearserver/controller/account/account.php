@@ -41,40 +41,44 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
-    public function Upload_Image_Local(Request $request,Response $response){
+    public function Upload_Image_Local(Request $request,Response $response,$args){
         // upload img in local machine
         // @param int $id
         // @return string json_massage
-        $params = $request->getParsedBody();
+        $params = $request->getQueryParams();
         $id = $params['id'];// key for select user
+    
         $files = $request->getUploadedFiles();
-        $directory  = __DIR__ . '../upload_local/img';
+        $directory  = '/app/upload_local/img';
         $supported_image = array(
             'gif',
             'jpg',
             'jpeg',
             'png'
         );
-
-        $extension = strtolower(pathinfo($files->getClientFilename(), PATHINFO_EXTENSION));
         $file = $files['picture'];
+        $extension = strtolower(pathinfo($file->getClientFilename(), PATHINFO_EXTENSION));
+        
         if ($file->getError() === UPLOAD_ERR_OK) {
             // filter files type
-            $filename = $this->moveUploadedFile($directory, $file);
             // TODO
             try{
+                $filename = $this->moveUploadedFile($directory, $file);
                 $sql = 'UPDATE account SET img_url = :img_name WHERE id = :id';
                 $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("img_name", $filename);
                 $stmt->bindParam("id", $id);
                 $stmt->execute();
                 
-                $response->withJson(array(
+                return $response->withJson(array(
                     "massage" => "uploaded" . $filename
                 ));
                 
             }catch(PDOException $e){
                 $this->container->logger->addInfo($e->getMessage());
+                return $response->withJson(array(
+                    "message" => $e->getMessage()
+                ))->withStatus(500);
             }
         }
     }
