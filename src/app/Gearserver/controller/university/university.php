@@ -206,24 +206,19 @@ class university{
             $stmt->execute();
             $result = $stmt->fetchAll();
             if(password_verify($old_password,$result[0]['uni_pwd']) && $password === $confirm_password){
-                try{
-                    $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $sql = "UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni = :uni";
-                    $stmt = $this->container->db->prepare($sql);
-                    $stmt->bindParam("uni",$decoded['uni']);
-                    $stmt->bindParam("uni_pwd",$hash);
-                    $stmt->execute();
-                    return $response->withStatus(200);
-                }catch(PDOException $e){
-                    $this->container->logger->addInfo($e->getMessage());
-                    return $response->withStatus(403);
-                }
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "UPDATE account_uni SET uni_pwd=:uni_pwd WHERE uni = :uni";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("uni",$decoded['uni']);
+                $stmt->bindParam("uni_pwd",$hash);
+                $stmt->execute();
+                return $response->withStatus(200);
             }else{
                 return $response->withStatus(403);
             }
         }catch(PDOException $e){
             $this->container->logger->addInfo($e->getMessage());
-            return $response->withStatus(403);
+            return $response->withStatus(500);
         }
     }
 
