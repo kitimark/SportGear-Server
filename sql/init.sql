@@ -24,12 +24,12 @@ CREATE TABLE account_role(
     role_type VARCHAR(1) NOT NULL,
     role_name VARCHAR(255) NOT NULL,
     role_des VARCHAR(255),
-    show_import_user BOOLEAN NOT NULL,
-    edit_import_user BOOLEAN NOT NULL,
-    show_import_team BOOLEAN NOT NULL,
-    edit_import_team BOOLEAN NOT NULL,
-    show_private_infomation BOOLEAN NOT NULL,
-    edit_private_infomation BOOLEAN NOT NULL,
+    show_import_user BOOLEAN NOT NULL DEFAULT 0,
+    edit_import_user BOOLEAN NOT NULL DEFAULT 0,
+    show_import_team BOOLEAN NOT NULL DEFAULT 0,
+    edit_import_team BOOLEAN NOT NULL DEFAULT 0,
+    show_private_infomation BOOLEAN NOT NULL DEFAULT 0,
+    edit_private_infomation BOOLEAN NOT NULL DEFAULT 0,
     UNIQUE KEY(role_type)
 );
 
