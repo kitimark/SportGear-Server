@@ -97,6 +97,10 @@ class dev{
                     $stmt->bindParam("owner_fname",$owner_fname);
                     $stmt->bindParam("owner_lname",$owner_lname);
                     $stmt->execute();
+                    $result[0]['email'] = $email;
+                    $result[0]['uni_full_name'] = $uni_full_name;
+                    $result[0]['owner_fname'] = $owner_fname;
+                    $result[0]['owner_lname'] = $owner_lname;
                     $result[0]['uni_pwd'] = $pwd;
                     return $result;
                 }catch(PDOException $e){
