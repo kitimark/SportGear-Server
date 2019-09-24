@@ -27,7 +27,3 @@ $container['db'] = function ($c) {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     return $pdo;
 };
-
-
-// Uploaded Files
-$container['upload_directory'] = __DIR__ . '/../uploads';
