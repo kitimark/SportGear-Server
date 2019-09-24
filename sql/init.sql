@@ -24,6 +24,12 @@ CREATE TABLE account_role(
     role_type VARCHAR(1) NOT NULL,
     role_name VARCHAR(255) NOT NULL,
     role_des VARCHAR(255),
+    show_import_user BOOLEAN NOT NULL,
+    edit_import_user BOOLEAN NOT NULL,
+    show_import_team BOOLEAN NOT NULL,
+    edit_import_team BOOLEAN NOT NULL,
+    show_private_infomation BOOLEAN NOT NULL,
+    edit_private_infomation BOOLEAN NOT NULL,
     UNIQUE KEY(role_type)
 );
 
@@ -33,7 +39,8 @@ INSERT INTO account_role(role_type,role_name) VALUES ("A","กกบ"),
 ("D","ผู้เข้าประกวดดาวเดือน"),
 ("E","ผู้ดูแลดาวเดือน"),
 ("F","คณาจารย์/เจ้าหน้าที่"),
-("G","สตาฟ");
+("G","สตาฟ"),
+("L","ผู้จัดการทีม");
 
 CREATE TABLE account_staff(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -47,7 +54,7 @@ CREATE TABLE account_staff(
 
 CREATE TABLE account(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    sid VARCHAR(25) NOT NULL,
+    sid VARCHAR(25),
     uni VARCHAR(7) NOT NULL,
     fname VARCHAR(128) NOT NULL,
     lname VARCHAR(128) NOT NULL,
@@ -79,9 +86,10 @@ CREATE TABLE sport_team(
     team_name VARCHAR(255) NOT NULL,
     fk_sport_id VARCHAR(4) NOT NULL,
     uni VARCHAR(7) NOT NULL,
+    fk_account_id_head INT,
     ts TIMESTAMP NOT NULL,
-
-    FOREIGN KEY (fk_sport_id) REFERENCES sport(id)
+    FOREIGN KEY (fk_sport_id) REFERENCES sport(id),
+    FOREIGN KEY (fk_account_id_head) REFERENCES account(id) ON DELETE SET NULL
 );
 
 CREATE TABLE sport_player(

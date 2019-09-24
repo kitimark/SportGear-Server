@@ -252,8 +252,8 @@ class sport{
                 'message' => 'QueryParams not set!'
             ));
         }
-        // check permission of university
         try{
+            // check permission of university
             $sql = "SELECT uni FROM sport_team WHERE id=:id";
             $stmt = $this->container->db->prepare($sql);
             $stmt->bindParam("id", $params['team_id']);
@@ -263,12 +263,27 @@ class sport{
                 return $response->withStatus(403)
                                 ->withJson(array("message" => "permission denied"));
             }
+
         }catch(PDOException $e){
             $this->container->logger->addInfo($e->getMessage());
         }
         $messageResponse = "Added ID to team_id " . $params['team_id'] ." : ";
+        $this->container->db->beginTransaction();
         for($index = 0 ; $index < count($params['account_id']);$index++){
             try{
+                
+                // check player must <= 2
+                $sql = "SELECT COUNT(fk_account_id) AS count_player FROM sport_player";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->fetchAll();
+                if($result[0]['count_player'] >= 2 ){
+                    $this->container->db->rollback();
+                    return $response->withJson(array(
+                        "message" => "Player full"
+                    ))->withStatus(500);
+                }
+                // Add player
                 $sql = "INSERT INTO sport_player(fk_team_id,fk_account_id,fk_sport_id) VALUES (:team_id,:account_id,:sport_id)";
                 $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("team_id",$params['team_id']);
@@ -280,6 +295,7 @@ class sport{
                 $this->container->logger->addInfo($e->getMessage());          
             }
         }
+        $this->container->db->commit();
 
         $response->withJson(array(
             "message" => $messageResponse
