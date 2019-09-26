@@ -19,7 +19,7 @@ $config = [
         ],
         'token' =>[
             'key' => base64_encode(getenv('SECRET_KEY'))
-        ]
+        ],
         
     ],
 ];
