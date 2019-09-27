@@ -13,8 +13,8 @@ $app->get('/routes',Gearserver\controller\dev::class . ':allRoutes');
 // send a mail
 //$app->post('/mail',Gearserver\controller\dev::class . ':sentMail');
 $app->group('/mail', function() use ($app){
-    $app->get('listinfo',Gearserver\controller\mail::class . ':getMailinfo');
-    $app->post('genuserpwd',Gearserver\controller\dev::class . ':gen_temp_user_pwd');
+    $app->get('/listinfo',Gearserver\controller\mail::class . ':getMailinfo');
+    $app->post('/genuserpwd',Gearserver\controller\dev::class . ':gen_temp_user_pwd');
 });
 // add user for testing
 $app->post('/user/test/add',Gearserver\controller\dev::class . ':devAdduser');
