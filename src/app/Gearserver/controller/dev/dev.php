@@ -17,7 +17,7 @@ class dev{
         $this->container = $container;
     }
 
-    public function temp_gen_user_pwd(Request $req ,Response $res){
+    public function gen_temp_user_pwd(Request $req ,Response $res){
         try{
             $sql = 'SELECT * FROM mail_info';
             $stmt = $this->container->db->prepare($sql);

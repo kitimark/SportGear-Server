@@ -2,6 +2,7 @@
 namespace Gearserver\controller;
 
 use Gearserver\controller;
+use PDOException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -104,5 +105,22 @@ class mail{
         }else{
             $template = file_get_contents(__DIR__ . '/template/register_template.html');
         }
+    }
+
+
+    public function getMailinfo(Request $req , Response $res){
+        try{
+            $sql = 'SELECT * FROM mail_info';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            return $res->withJson($result);
+        }catch(PDOException $err){
+            return $res->withJson(array(
+                "message" => "error"
+            ))->withStatus(404);
+            $this->container->logger->error($err->getMessage());
+        }
+
     }
 }
