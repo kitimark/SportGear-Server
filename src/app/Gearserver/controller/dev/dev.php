@@ -1,6 +1,7 @@
 <?php 
 namespace Gearserver\controller;
 
+use Monolog\Handler\RedisHandler;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -15,6 +16,37 @@ class dev{
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
     }
+
+    public function temp_gen_user_pwd(Request $req ,Response $res){
+        try{
+            $sql = 'SELECT * FROM mail_info';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            $pwd = bin2hex(openssl_random_pseudo_bytes(4));
+            $hash = password_hash($pwd, PASSWORD_DEFAULT);
+
+            foreach($result as $user){
+                $rand_num = array();
+                for($i = 0 ; $i < 6 ;$i++){
+                    $rand_num .= rand(0,9);
+                }
+                $this->container->db->beginTransaction();
+                $temp_user = $user['uni'] .(rand(10,100));
+                $sql = 'UPDATE mail_info SET temp_username = :temp_user , temp_pwd = :temp_pwd WHERE uni =:uni';
+                $stmt->bindParam("uni",$user['uni']);
+                $stmt->bindParam("temp_user",$temp_user);
+                $stmt->bindParam("temp_pwd",$pwd);
+                $stmt->execute();
+                $this->container->db->commit();
+            }
+
+        }catch(PDOException $err){
+            $this->container->db->rollback();
+            $this->container->logger->error($err->getMessage());
+        }
+    }
+
     protected function sentMail_db($uni){
         //$file_url = 'https://dl.dropboxusercontent.com/s/b43rbftbwz3qxui/uniMap.json';
 
