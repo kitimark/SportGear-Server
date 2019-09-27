@@ -27,12 +27,12 @@ class dev{
             $hash = password_hash($pwd, PASSWORD_DEFAULT);
 
             foreach($result as $user){
-                $rand_num = array();
-                for($i = 0 ; $i < 6 ;$i++){
-                    $rand_num .= rand(0,9);
+                $user_dump_num = '';
+                for($i = 0; $i < 6; $i++) {
+                    $user_dump_num .= mt_rand(0, 9);
                 }
                 $this->container->db->beginTransaction();
-                $temp_user = $user['uni'] .(rand(10,100));
+                $temp_user = $user['uni'] . $user_dump_num;
                 $sql = 'UPDATE mail_info SET temp_username = :temp_user , temp_pwd = :temp_pwd WHERE uni =:uni';
                 $stmt->bindParam("uni",$user['uni']);
                 $stmt->bindParam("temp_user",$temp_user);
