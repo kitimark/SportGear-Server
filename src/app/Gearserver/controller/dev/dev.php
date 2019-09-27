@@ -25,7 +25,7 @@ class dev{
             $result = $stmt->fetchAll();
             $pwd = bin2hex(openssl_random_pseudo_bytes(4));
             $hash = password_hash($pwd, PASSWORD_DEFAULT);
-
+            $count_user = 0;
             foreach($result as $user){
                 $user_dump_num = '';
                 for($i = 0; $i < 6; $i++) {
@@ -39,11 +39,18 @@ class dev{
                 $stmt->bindParam("temp_pwd",$pwd);
                 $stmt->execute();
                 $this->container->db->commit();
-            }
+                $count_user++;
 
+            }
+            return $res->withJson(array(
+                "message" => "Generate : " . $count_user,
+            ));
         }catch(PDOException $err){
             $this->container->db->rollback();
             $this->container->logger->error($err->getMessage());
+            return $res->withJson(array(
+                "message" => "error :" . $err->getMessage()
+            ))->withStatus(404);
         }
     }
 
