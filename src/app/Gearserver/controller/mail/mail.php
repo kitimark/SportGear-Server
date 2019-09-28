@@ -119,11 +119,7 @@ class mail{
             return false;
         }
     }
-    public function router_uni_register(Request $req,Response $res){
-        $param = $req->getParsedBody();
-        $id = $param['id'];
-        $email = $param['email'];
-    }
+
     public function uni_register($data){
         /*
         data = array(

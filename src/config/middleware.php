@@ -29,7 +29,7 @@ $app->add(new Tkhamez\Slim\RoleAuth\SecureRouteMiddleware(
 $app->add(new Tuupola\Middleware\JwtAuthentication([
     "path" => ["/api"],
     "attribute" => "jwt",
-    "ignore" => ["/api/v1/university/login"],
+    "ignore" => ["/api/v1/university/login","/api/v1/university/register"],
     "before" => function ($request, $arguments) {
         $jwt = $request->getAttribute("jwt");
         $roles = $jwt['roles'];

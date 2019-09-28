@@ -31,6 +31,7 @@ $app->group('/api/v1',function() use ($app){
             $app->post('/addTeam',Gearserver\controller\sport::class . ':AddTeam');
             $app->post('/addPlayer',Gearserver\controller\sport::class . ':AddPlayer');
             $app->patch('/Player',Gearserver\controller\sport::class . 'UpdatePlayer');
+
         });
         $app->group('/search',function() use ($app){
             $app->get('/{id}',function(Request $request,Response $response,$args){
@@ -51,6 +52,7 @@ $app->group('/api/v1',function() use ($app){
         $app->get('', Gearserver\controller\university::class . ':Session');
         $app->patch('/password',Gearserver\controller\university::class . ':PasswordChange');
         $app->post('/login',Gearserver\controller\university::class . ':Login');
+        $app->post('/register',Gearserver\controller\university::class . ':Register');
         $app->group('/users' ,function() use($app){
             $app->post('/image', Gearserver\controller\account::class . ':Upload_Image_Local');
             $app->get('/info', Gearserver\controller\university::class . ':Info');
