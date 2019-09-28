@@ -75,8 +75,10 @@ class university{
             $this->container->logger->addInfo($e->getMessage());
             return $response->withStatus(401);
         }
-    }
+ 
+   }
 
+/*
     public function Login(Request $request,Response $response){
         
         $params = $request->getParsedBody();
@@ -173,7 +175,7 @@ class university{
             }
         }
     }
-
+*/
     public function Session(Request $request, Response $response){
         $decoded = $request->getAttribute('jwt');
         try {
