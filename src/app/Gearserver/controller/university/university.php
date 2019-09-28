@@ -5,6 +5,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT;
+use Gearserver\controller\mail as mailsys;
 use \Datetime;
 use \PDOException;
 
@@ -221,6 +222,107 @@ class university{
             return $response->withStatus(500);
         }
     }
+    public function Register(Request $req , Response $res){
+        $msg = "";//get message to res back
+        $mail = new mail($this->container);
 
+        /*
+        {
+            "id" : 15136
+        }
+         */
+        $param = $req->getParsedBody();
+        $id = $param['id'];
+        try{
+            // get mail_info
+            $sql = 'SELECT * FROM mail_info WHERE id=:id';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("id",$id);
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+            
+            // maping data
+            $email = $result[0]['email'];
+            $uni = $result[0]['uni'];
+            $username = $result[0]['temp_username'];
+            $password = $result[0]['temp_password'];
+            $fullname = $result[0]['fullname'];
+            $fname = $result[0]['owner_fname'];
+            $lname = $result[0]['owner_lname'];
+            // insert into real table account_uni
+            $this->container->db->beginTransction();
+            $sql = 'INSERT INTO account_uni VALUES (":uni",":uni_full_name")';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni",$uni);
+            $stmt->bindParam("uni_full_name",$fullname);
+            $stmt->execute();
+            $this->container->db->commit();
+            $msg .= "| insert to account_uni - complate |";
+
+            // insert into account
+            // type_role U for university
+            $this->container->db->beginTransction();
+            $sql = 'INSERT INTO account(uni,fname,lname,type_role,email) VALUES (":uni",":fname",":lname","U",":email")';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("uni",$uni);
+            $stmt->bindParam("fname",$fname);
+            $stmt->bindParam("lname",$lname);
+            $stmt->bindParam("email",$email);
+            $stmt->execute();
+            $this->container->db->commit();
+            $msg .= "| insert to account - complate |";
+
+            // select id back to get fk_account in account_staff
+            $sql = 'SELECT id FROM account WHERE email=:email AND type_role="U"';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("email",$email);
+            $stmt->execute();
+            $fk_account = $stmt->fetchAll();
+
+            // hash password to insert into account_staff
+            $hash_password = password_hash($password,PASSWORD_DEFAULT);
+
+            // insert for login
+            $this->container->db->beginTransction();
+            $sql = 'INSERT INTO account_staff(fk_account,username,password) VALUES (:fk_account,:username,:password)';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("fk_account",$fk_account[0]['fk_account']);
+            $stmt->bindParam("username",$username);
+            $stmt->bindParam("password",$hash_password);
+            $stmt->execute();
+            $this->container->db->commit();
+            $msg .= "| insert to account_staff - complate |";
+
+            // sent to mail
+            // prepare data
+            
+            $data = array(
+                "email" => $email,
+                "username" => $username,
+                "password" => $password,
+                "fullname" => $fullname
+            );
+            
+            if($mail->uni_register($data)){
+                $msg .= "| sent mail - complate |";
+                return $res->withJson(array(
+                    "message" => $msg
+                ));
+            }else{
+                $msg .= "| sent mail - incomplate |";
+                return $res->withJson(array(
+                    "message" => $msg
+                ))->withStatus(403);
+            }
+
+        }catch(PDOException $err){
+            $this->container->logger->error($err->getMessage());
+            $this->container->rollback();
+            return $res->withJson(array(
+                "message" => $msg,
+                "error_msg" => $err->getMessage()
+            ))->withStatus(403);
+        }
+    }
 
 }

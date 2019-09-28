@@ -37,6 +37,33 @@ class mail{
         }
     }
 
+    private function send($email,$name){
+        // not list email
+        $this->container->logger->info("Mailer : try to send email to " . $email);
+        if(filter_var($email, FILTER_VALIDATE_EMAIL)){
+            $this->mail->addAddress($email,$name);
+            $this->container->logger->info("Mailer : " . $email ." Added");
+            $flag = true;
+        }else{
+            $this->container->logger->error("Mailer : " . $email . " is invalid");
+        }
+        // if no one addAddress flag will be false
+        if($flag){
+            try{
+                $this->mail->send();
+                $this->logger->info("Mailer : Message has been sent!!!");
+                return true;
+            }catch(Exception $err){
+                $this->logger->error($err->getMessage());
+                return false;
+            }
+        }else{
+            return false;
+        }
+        
+
+
+    }
     private function sends($emails){
         /*
          $recipients = array(
@@ -83,6 +110,7 @@ class mail{
         $Body = empty($content['body']) ? 'Somethings wrong about content.' : $content['body'];
         try{
             $this->mail->isHTML(true); // HTML content
+            $this->mail->setFrom = $setFrom;
             $this->mail->Subject = $Subject;
             $this->mail->Body = $Body;
             return true;
@@ -91,19 +119,40 @@ class mail{
             return false;
         }
     }
-
+    public function router_uni_register(Request $req,Response $res){
+        $param = $req->getParsedBody();
+        $id = $param['id'];
+        $email = $param['email'];
+    }
     public function uni_register($data){
         /*
         data = array(
             email = 'mail@example.com',
             username = 'cmu',
-            password = '{hash_password}'
+            password = 'password',
+            fullname = 'Chiang Mai University'
         )
          */
         if(!is_array($data) && empty($data['email']) && empty($data['username']) && empty($data['password'])){
             return false;// false data mapping
         }else{
             $template = file_get_contents(__DIR__ . '/template/register_template.html');
+            str_replace("REPLACEMENT_USERNAME_HERE",$data['username'],$template);
+            str_replace("REPLACEMENT_PASSWORD_HERE",$data['password'],$template);
+            $content = array(
+                "setFrom" => $data['email'],
+                "subject" => "ระบบลงทะเบียนสำหรับ Geargames30 - " . $data['fullname'],
+                "body" => $template,
+            );
+            if($this->bindContent($content)){
+                if($this->send($data['email'],$data['fullname'])){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
         }
     }
 
