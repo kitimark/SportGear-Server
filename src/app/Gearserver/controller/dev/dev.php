@@ -23,30 +23,36 @@ class dev{
             $stmt = $this->container->db->prepare($sql);
             $stmt->execute();
             $result = $stmt->fetchAll();
-            $pwd = bin2hex(openssl_random_pseudo_bytes(4));
-            $hash = password_hash($pwd, PASSWORD_DEFAULT);
+            //$hash = password_hash($pwd, PASSWORD_DEFAULT);
+            $this->container->db->beginTransaction();
             $count_user = 0;
             foreach($result as $user){
+                //gen password
+                $pwd = bin2hex(openssl_random_pseudo_bytes(4));
                 $user_dump_num = '';
-                for($i = 0; $i < 6; $i++) {
+                for($i = 0; $i < 3; $i++) {
                     $user_dump_num .= mt_rand(0, 9);
                 }
-                $this->container->db->beginTransaction();
                 $temp_user = $user['uni'] . $user_dump_num;
                 $sql = 'UPDATE mail_info SET temp_username = :temp_user , temp_pwd = :temp_pwd WHERE uni =:uni';
+                $stmt = $this->container->db->prepare($sql);
                 $stmt->bindParam("uni",$user['uni']);
                 $stmt->bindParam("temp_user",$temp_user);
                 $stmt->bindParam("temp_pwd",$pwd);
                 $stmt->execute();
-                $this->container->db->commit();
                 $count_user++;
-
+                /*
+                return $res->withJson(array(
+                    "message" => $user['uni']
+                ));
+                */
+                //return $res->withJson($user);
             }
+            $this->container->db->commit();
             return $res->withJson(array(
                 "message" => "Generate : " . $count_user,
             ));
         }catch(PDOException $err){
-            $this->container->db->rollback();
             $this->container->logger->error($err->getMessage());
             return $res->withJson(array(
                 "message" => "error :" . $err->getMessage()
