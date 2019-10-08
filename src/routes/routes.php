@@ -52,7 +52,7 @@ $app->group('/api/v1',function() use ($app){
         $app->get('', Gearserver\controller\university::class . ':Session');
         $app->patch('/password',Gearserver\controller\university::class . ':PasswordChange');
         $app->post('/login',Gearserver\controller\university::class . ':Login');
-        $app->post('/register',Gearserver\controller\university::class . ':Register');
+        $app->post('/register',Gearserver\controller\account::class . ':Register_uni');
         $app->group('/users' ,function() use($app){
             $app->post('/image', Gearserver\controller\account::class . ':Upload_Image_Local');
             $app->get('/info', Gearserver\controller\university::class . ':Info');
