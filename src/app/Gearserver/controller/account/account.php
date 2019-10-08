@@ -398,7 +398,92 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
+    
+    private function generate_jwt_token($infomation,$expire){
+        $expire = empty($expire) ? 3600 : $expire;      
+        $settings = $this->container->get('settings')['token'];
+        $key = $settings['key'];
+        $date = new DateTime();
+        $start_time = $date->getTimestamp();
+        $end_time = $start_time + $expire;
+        $token = array(
+            "iat" => $date->getTimestamp(),
+            "nbf" => $start_time,
+            "exp" => $end_time,
+            "roles" => array($infomation['roles']),
+            "uni" => $infomation['uni'],
+        );
+        $jwt = 'Bearer ' . JWT::encode($token, $key);
+        return $jwt;
+    }
+    public function Login(Request $req,Response $res){
+        /*
+        {
+            "username":"cmu16556165",
+            "password":"1234"
+        }
+         */
+        $ts = new DateTime(); //$date->format('Y-m-d H:i:s');
+        $params = $req->getParsedBody();
+        $username = $params['username'];
+        $password = $params['password'];
+        try{
+            // select username & hash password to verify user
+            $sql = 'SELECT account.id AS id,
+            account.sid AS sid,
+            account.uni AS uni,
+            account.fname AS fname,
+            account.lname AS lname,
+            account.type_role AS type_role,
+            account.email AS email,
+            account_staff.fk_account AS id_login,
+            account_staff.username AS username,
+            account_staff.pwd AS pwd
+            FROM account_staff
+            JOIN ON  
+            WHERE account_staff.username=:username';
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParam("username",$username);
+            $stmt->execute();
+            $user = $stmt->fetchAll();
+            if(empty($user)>0){
+                // verify a password
+                if(password_verify($password,$user[0]['pwd'])){
+                    // update last_login
+                    $sql = 'UPDATE account_staff SET last_login=:last_login WHERE id=:id ';
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("last_login",$ts->format('Y-m-d H:i:s'));
+                    $stmt->bindParam("id",$user[0]['id_login']);
+                    $stmt->execute();
+                    // TODO gen jwt & select data form account table back may be will change to join to imporve a performance
+                    $token_info = array(
+                        "uni" => $user[0]['uni'],
+                        "roles" => $user[0]['type_role']
+                    );
+                    $this->res = $res->withAddedHeader('Authorization' , $this->generate_jwt_token($token_info,360000));
+                    return $this->res->withJson($user);//return token and infomation
 
+
+                }else{
+                    // password not match
+                    return $res->withJson(array(
+                        "message" => "password not match"
+                    ))->withStatus(404);
+                }
+            }else{
+                // not found user
+                return $res->withJson(array(
+                    "message" => $username . " not found"
+                ))->withStatus(404);
+            }
+        }catch(PDOException $err){
+            $this->container->logger->error($err->getMessage());
+            return $res->withJson(array(
+                "message" => $err->getMessage()
+            ))->withStatus(500);
+        }
+    }
+/*
     public function Login(Request $request,Response $response){
         $params = $request->getParsedBody();
         $date = new DateTime();
@@ -476,5 +561,5 @@ class account{
         }
         
     }
-
+*/
 }
