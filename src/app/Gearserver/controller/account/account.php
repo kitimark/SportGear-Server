@@ -349,7 +349,7 @@ class account{
         }
     }
 
-    public function Register(Request $req,Response $res){
+    public function Register_uni(Request $req,Response $res){
         $params = $req->getParsedBody();
         $mail_info_id = $params['id'];
         $sendmail = empty($params['sendmail']) ? false : is_bool($params['sendmail']) ? $params['sendmail'] : false;
