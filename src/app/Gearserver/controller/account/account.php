@@ -8,6 +8,7 @@ use \PDOException;
 use Slim\Http\UploadedFile;
 use \DateTime;
 use \Firebase\JWT\JWT;
+use Gearserver\controller\mail as mailsys;
 
 class account{
     protected $container;
@@ -347,7 +348,143 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
-    public function Register(Request $request,Response $response){
+
+    public function Register(Request $req,Response $res){
+        $params = $req->getParsedBody();
+        $mail_info_id = $params['id'];
+        $sendmail = empty($params['sendmail']) ? false : is_bool($params['sendmail']) ? $params['sendmail'] : false;
+        if(empty($mail_info_id)){
+            return $res->withJson(array(
+                "message" => "mail_info_id is NULL"
+            ))->withStatus(404);
+        }
+        try{
+            // load data from mail_info
+            $sql = "SELECT * FROM mail_info WHERE id=:id";
+            $stmt = $this->container->db->prepare($sql);
+            $stmt->bindParams("id",$mail_info_id);
+            $stmt->execute();
+            $mail_user = $stmt->fetchAll();
+            // check user exist or not
+            if(count($mail_user) > 0){
+                // check university exist or not (normally not exist)
+                $uni = $mail_user[0]['uni'];
+                $uni_full_name = $mail_user[0]['fullname'];
+                $sql = "SELECT * FROM account_uni WHERE uni=:uni";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParams("uni",$uni);
+                $stmt->execute();
+                $university = $stmt->fetchAll();
+                if(count($university) == 0){
+                    // Insert account_uni
+                    $sql = "INSERT INTO account_uni(uni,uni_full_name) VALUES (:uni,:uni_full_name)";
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParams("uni",$uni);
+                    $stmt->bindParams("uni_full_name",$uni_full_name);
+                    $stmt->execute();
+                }
+
+                // Check account
+                $email = $mail_user[0]['email'];
+                $sql = "SELECT * FROM account WHERE email=:email";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParams("email",$email);
+                $stmt->execute();
+                $user_account = $stmt->fetchAll();
+                if(count($user_account) == 0){
+                    // Insert account
+                    $fname = $mail_user[0]['owner_fname'];
+                    $lname = $mail_user[0]['owner_lname'];
+                    $type_role = "U"; // for university
+                    $sql = "INSERT INTO account(uni,fname,lname,type_role,email) VALUES (:uni,:fname,:lname,:type_role,:email)";
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParams(":uni",$uni);
+                    $stmt->bindParams(":fname",$fname);
+                    $stmt->bindParams(":lname",$lname);
+                    $stmt->bindParams(":type_role",$type_role);
+                    $stmt->bindParams(":email",$email);
+                    $stmt->execute();
+                    // get fk_account for login
+                    $email = $mail_user[0]['email'];
+                    $sql = "SELECT * FROM account WHERE email=:email";
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParams("email",$email);
+                    $stmt->execute();
+                    $user_account = $stmt->fetchAll();
+                    $fk_account = $user_account[0]['id'];
+
+                }else{
+                    $fk_account = $user_account[0]['id'];
+                }
+
+                // check account_staff exist or not
+                $username = $mail_user[0]['temp_username'];
+                $password = $mail_user[0]['temp_pwd'];
+                $password_hash = password_hash($password,PASSWORD_DEFAULT);
+                $sql = "SELECT * FROM account_staff WHERE username=:username";
+                $stmt = $this->container->db->prepare($sql);
+                $stmt->bindParam("username",$username);
+                $stmt->execute();
+                $account_staff = $stmt->fetchAll();
+
+                if(count($account_staff) > 0){
+                    // if password not match update password from mail_info
+                    if(!password_verify($password,$account_staff[0]['pwd'])){
+                        $sql = "UPDATE account_staff SET pwd=:password_hash WHERE id=:id";
+                        $stmt = $this->container->db->prepare($sql);
+                        $stmt->bindParam("password_hash",$password_hash);
+                        $stmt->bindParam("id",$account_staff[0]['id']);
+                        $stmt->execute();
+                    }
+                }else{
+                    // INSERT account_staff
+                    $sql = "INSERT INTO account_staff(fk_account,username,pwd) VALUES (:fk_account,:username,:pwd)";
+                    $stmt = $this->container->db->prepare($sql);
+                    $stmt->bindParam("fk_account",$fk_account);
+                    $stmt->bindParam("username",$username);
+                    $stmt->bindParam("pwd",$password_hash);
+                    $stmt->execute();
+                }
+
+                // sentmail
+                if($sendmail){
+                    $data = array(
+                        "email" => $email,
+                        "username" => $username,
+                        "password" => $password,
+                        "fullname" => $uni_full_name
+                    );
+                    $mailer = new mail($this->container);
+                    if($mailer->uni_register($data)){
+                        return $res->withJson(array(
+                            "message" => "register complete with send a mail"
+                        ));
+                    }else{
+                        return $res->withJson(array(
+                            "message" => "register complete without send a mail(ERROR)"
+                        ));
+                    }
+                }else{
+                    return $res->withJson(array(
+                        "message" => "register complete without send a mail"
+                    ));
+                }
+
+                
+            }else{
+                return $res->withJson(array(
+                    "message" => "User not exist in mail_info, Please send a infomation to staff"
+                ))->withStatus(404);
+            }
+        }catch(PDOException $err){
+            $this->container->logger->error($err->getMessage());
+            return $res->withJson(array(
+                "message" => $err->getMessage()
+            ))->withStatus(404);
+        }
+        
+    }
+    /*public function Register(Request $request,Response $response){
         $params = $request->getParsedBody();
         // Require fk_account to register (user need to exist in account table first)
         $fk_account = $params['id'];// id form account table
@@ -398,6 +535,7 @@ class account{
             $this->container->logger->addInfo($e->getMessage());
         }
     }
+    */
     
     private function generate_jwt_token($infomation,$expire){
         $expire = empty($expire) ? 3600 : $expire;      
